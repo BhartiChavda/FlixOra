@@ -104,6 +104,10 @@ def admin_dashboard(request):
         return render(request, 'admin/dashboard.html', context)
 
     # If NOT logged in as staff/superuser
+    if request.user.is_authenticated:
+        messages.error(request, "Access Denied: You do not have administrator permissions.")
+        return redirect('dashboard')
+
     if request.method == 'POST':
         username_val = request.POST.get('username')
         password_val = request.POST.get('password')

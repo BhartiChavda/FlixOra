@@ -123,16 +123,41 @@
 
             <div class="nav-links" id="navLinks">
                 {% if user.is_authenticated %}
-                    {% if '/admin/' in request.path or request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'add_movie' or request.resolver_match.url_name == 'edit_movie' or request.resolver_match.url_name == 'delete_movie' %}
-                        <!-- Admin Specific Navbar Links -->
-                        <a href="{% url 'dashboard' %}" class="nav-link">
-                            <i class="fa-solid fa-globe"></i> Visit Site
-                        </a>
-                        <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                            <i class="fa-solid fa-shield-halved"></i> Admin Panel
-                        </a>
+                    {% if user.is_staff or user.is_superuser %}
+                        {% if '/admin/' in request.path or request.resolver_match.url_name == 'admin_dashboard' or request.resolver_match.url_name == 'add_movie' or request.resolver_match.url_name == 'edit_movie' or request.resolver_match.url_name == 'delete_movie' %}
+                            <!-- Admin Specific Navbar Links -->
+                            <a href="{% url 'dashboard' %}" class="nav-link">
+                                <i class="fa-solid fa-globe"></i> Visit Site
+                            </a>
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                                <i class="fa-solid fa-shield-halved"></i> Admin Panel
+                            </a>
+                        {% else %}
+                            <!-- Standard User Navbar Links for Admin -->
+                            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                                <i class="fa-solid fa-compass"></i> Explore
+                            </a>
+                            <a href="{% url 'following_feed' %}" class="nav-link {% if request.resolver_match.url_name == 'following_feed' %}active{% endif %}">
+                                <i class="fa-solid fa-people-group"></i> Critics Feed
+                            </a>
+                            <a href="{% url 'activity_feed' %}" class="nav-link {% if request.resolver_match.url_name == 'activity_feed' %}active{% endif %}">
+                                <i class="fa-solid fa-bolt"></i> Activity
+                            </a>
+                            
+                            <!-- Notification Bell -->
+                            <a href="{% url 'notifications' %}" class="nav-link notification-bell {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}" style="position: relative;">
+                                <i class="fa-solid fa-bell"></i>
+                                {% if user.profile.unread_notifications_count > 0 %}
+                                    <span class="bell-badge">{{ user.profile.unread_notifications_count }}</span>
+                                {% endif %}
+                            </a>
+
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                                <i class="fa-solid fa-shield-halved"></i> Admin Panel
+                            </a>
+                        {% endif %}
                     {% else %}
-                        <!-- Standard User Navbar Links -->
+                        <!-- Standard User Navbar Links (Non-Admin) -->
                         <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                             <i class="fa-solid fa-compass"></i> Explore
                         </a>
@@ -150,12 +175,6 @@
                                 <span class="bell-badge">{{ user.profile.unread_notifications_count }}</span>
                             {% endif %}
                         </a>
-
-                        {% if user.is_staff or user.is_superuser %}
-                            <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                                <i class="fa-solid fa-shield-halved"></i> Admin Panel
-                            </a>
-                        {% endif %}
                     {% endif %}
                     
                     <!-- Profile Dropdown Menu -->

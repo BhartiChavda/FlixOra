@@ -52,7 +52,6 @@
         background: #ff3333 !important;
         box-shadow: 0 0 35px rgba(255, 0, 0, 0.9) !important;
     }
-
 </style>
 <a href="{% url 'dashboard' %}" class="btn-back">
     <i class="fa-solid fa-arrow-left"></i> Back
@@ -72,8 +71,10 @@
             style="display: block; width: 100%; text-align: center; border-color: #ff0000; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); padding: 0.9rem; margin-bottom: 0.5rem; background: rgba(255, 0, 0, 0.05); color: #fff; cursor: pointer;">
             <i class="fa-brands fa-youtube" style="color: #ff0000; margin-right: 5px;"></i> Watch Trailer
         </button>
-        <div style="font-size: 0.75rem; color: var(--text-dim); text-align: center; margin-bottom: 1.2rem; line-height: 1.4;">
-            <i class="fa-solid fa-circle-info" style="color: var(--neon-cyan);"></i> Click to view official trailer options.
+        <div
+            style="font-size: 0.75rem; color: var(--text-dim); text-align: center; margin-bottom: 1.2rem; line-height: 1.4;">
+            <i class="fa-solid fa-circle-info" style="color: var(--neon-cyan);"></i> Click to view official trailer
+            options.
         </div>
         {% endif %}
 
@@ -104,9 +105,15 @@
             </form>
             {% if watchlist_entry %}
             <p style="color: var(--neon-green); font-size: 0.8rem; margin-top: 0.6rem; font-weight: 700;">
-                <i class="fa-solid fa-circle-check"></i> Listed: <span style="text-transform: uppercase;">{{
-                    watchlist_entry.get_status_display }}</span> ({% if watchlist_entry.is_public %}Public{% else
-                %}Private{% endif %})
+                <i class="fa-solid fa-circle-check"></i> Listed: 
+                <span style="text-transform: uppercase;">
+                    {{ watchlist_entry.get_status_display }}
+                </span> 
+                {% if watchlist_entry.is_public %}
+                    (Public)
+                {% else %}
+                    (Private)
+                {% endif %}
             </p>
             {% endif %}
         </div>
@@ -378,9 +385,11 @@
                         <a href="{% url 'user_profile' review.user.username %}" style="text-decoration: none;">
                             <div class="comic-avatar">
                                 {% if review.user.profile.profile_picture %}
-                                    <img src="{{ review.user.profile.profile_picture.url }}" alt="{{ review.user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                <img src="{{ review.user.profile.profile_picture.url }}"
+                                    alt="{{ review.user.username }}"
+                                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                                 {% else %}
-                                    {{ review.user.username|make_list|first|upper }}
+                                {{ review.user.username|make_list|first|upper }}
                                 {% endif %}
                             </div>
                         </a>
@@ -584,7 +593,8 @@
                 </div>
                 <div class="movie-card-back">
                     <h3 class="card-back-title" style="font-size: 1rem;">{{ m.title }}</h3>
-                    <p class="card-back-desc" style="-webkit-line-clamp: 4; line-clamp: 4; font-size: 0.75rem;">{{ m.description }}</p>
+                    <p class="card-back-desc" style="-webkit-line-clamp: 4; line-clamp: 4; font-size: 0.75rem;">{{
+                        m.description }}</p>
                     <a href="{% url 'movie_detail' m.id %}" class="btn-neon form-btn-full"
                         style="display: block; text-align: center; padding: 0.4rem; font-size: 0.75rem; margin-top: auto;">
                         Details
@@ -600,37 +610,54 @@
 <!-- Trailer Modal Popup -->
 <!-- Trailer Modal Popup -->
 <div class="modal-trailer" id="trailerModal">
-    <div class="modal-trailer-content" style="background: #12121c; border: 1px solid rgba(255, 0, 0, 0.35); box-shadow: 0 0 30px rgba(255, 0, 0, 0.2); border-radius: 24px; width: 100%; max-width: 500px; position: relative; overflow: hidden; padding: 2rem; text-align: center; box-sizing: border-box;">
-        <span class="modal-trailer-close" id="closeTrailerBtn" style="position: absolute; top: 15px; right: 20px; font-size: 2rem; color: #fff; cursor: pointer; transition: color 0.2s; z-index: 10;">&times;</span>
-        
+    <div class="modal-trailer-content"
+        style="background: #12121c; border: 1px solid rgba(255, 0, 0, 0.35); box-shadow: 0 0 30px rgba(255, 0, 0, 0.2); border-radius: 24px; width: 100%; max-width: 500px; position: relative; overflow: hidden; padding: 2rem; text-align: center; box-sizing: border-box;">
+        <span class="modal-trailer-close" id="closeTrailerBtn"
+            style="position: absolute; top: 15px; right: 20px; font-size: 2rem; color: #fff; cursor: pointer; transition: color 0.2s; z-index: 10;">&times;</span>
+
         <!-- Blurred Poster Background inside modal -->
-        <div style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 18, 28, 0.95), rgba(18, 18, 28, 0.95)), url('{{ movie.get_poster }}') no-repeat center center/cover; filter: blur(20px); opacity: 0.15; z-index: 1;"></div>
-        
+        <div
+            style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 18, 28, 0.95), rgba(18, 18, 28, 0.95)), url('{{ movie.get_poster }}') no-repeat center center/cover; filter: blur(20px); opacity: 0.15; z-index: 1;">
+        </div>
+
         <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center;">
             <!-- Brand header -->
             <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 1.2rem;">
-                <span style="color: #ff0000; font-size: 1.4rem; display: flex; align-items: center;"><i class="fa-brands fa-youtube"></i></span>
-                <span style="font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);">FlixOra Player</span>
+                <span style="color: #ff0000; font-size: 1.4rem; display: flex; align-items: center;"><i
+                        class="fa-brands fa-youtube"></i></span>
+                <span
+                    style="font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);">FlixOra
+                    Player</span>
             </div>
 
             <!-- Custom Play Card / Image -->
-            <div style="position: relative; width: 100%; height: 220px; border-radius: 16px; overflow: hidden; margin-bottom: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <div
+                style="position: relative; width: 100%; height: 220px; border-radius: 16px; overflow: hidden; margin-bottom: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
                 <!-- Poster/Backdrop as preview -->
-                <img src="{{ movie.get_poster }}" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6);" alt="{{ movie.title }}" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
-                
+                <img src="{{ movie.get_poster }}"
+                    style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6);"
+                    alt="{{ movie.title }}"
+                    onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+
                 <!-- Red Play Button -->
-                <a href="{{ movie.trailer_url }}" target="_blank" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: #ff0000; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.8rem; box-shadow: 0 0 25px rgba(255, 0, 0, 0.6); transition: all 0.25s ease; text-decoration: none;" class="modal-play-btn" id="modalPlayLink">
+                <a href="{{ movie.trailer_url }}" target="_blank"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: #ff0000; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.8rem; box-shadow: 0 0 25px rgba(255, 0, 0, 0.6); transition: all 0.25s ease; text-decoration: none;"
+                    class="modal-play-btn" id="modalPlayLink">
                     <i class="fa-solid fa-play" style="margin-left: 5px; color: #fff;"></i>
                 </a>
             </div>
 
             <!-- Title & info -->
-            <h3 style="font-size: 1.2rem; font-weight: 900; color: #fff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ movie.title }}</h3>
-            <p style="font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.5; max-width: 360px;">
+            <h3
+                style="font-size: 1.2rem; font-weight: 900; color: #fff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                {{ movie.title }}</h3>
+            <p
+                style="font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.5; max-width: 360px;">
                 Click the play button to watch the official trailer directly on YouTube.
             </p>
 
-            <a href="{{ movie.trailer_url }}" target="_blank" class="btn-neon" id="modalActionBtn" style="display: inline-block; border-color: #ff0000; box-shadow: 0 0 12px rgba(255,0,0,0.3); padding: 0.6rem 2rem; font-size: 0.8rem; background: rgba(255,0,0,0.08); text-decoration: none; border-radius: 30px;">
+            <a href="{{ movie.trailer_url }}" target="_blank" class="btn-neon" id="modalActionBtn"
+                style="display: inline-block; border-color: #ff0000; box-shadow: 0 0 12px rgba(255,0,0,0.3); padding: 0.6rem 2rem; font-size: 0.8rem; background: rgba(255,0,0,0.08); text-decoration: none; border-radius: 30px;">
                 <i class="fa-brands fa-youtube" style="margin-right: 5px;"></i> Open YouTube Player
             </a>
         </div>
