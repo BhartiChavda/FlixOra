@@ -214,7 +214,7 @@
                 Critics Watchlist Planner ({{ watchlists.count }})
             </h3>
             
-            <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem;">
+            <div class="dashboard-grid watchlist-grid">
                 {% for entry in watchlists %}
                 <a href="{% url 'movie_detail' entry.movie.id %}" class="movie-card-container" style="display: block; text-decoration: none; height: 260px;">
                     <div class="movie-card-inner">
@@ -685,9 +685,15 @@ function showDynamicToast(message, type) {
                 </a>
                 
                 {% if f.follower != user %}
-                <button class="btn-modal-follow" data-username="{{ f.follower.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid {% if f.follower.id in my_following_ids %}rgba(255,255,255,0.15){% else %}var(--neon-cyan){% endif %}; color: {% if f.follower.id in my_following_ids %}var(--text-dim){% else %}var(--neon-cyan){% endif %}; padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
-                    {% if f.follower.id in my_following_ids %}Following{% else %}Follow{% endif %}
-                </button>
+                    {% if f.follower.id in my_following_ids %}
+                    <button class="btn-modal-follow" data-username="{{ f.follower.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--text-dim); padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
+                        Following
+                    </button>
+                    {% else %}
+                    <button class="btn-modal-follow" data-username="{{ f.follower.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
+                        Follow
+                    </button>
+                    {% endif %}
                 {% endif %}
             </div>
             {% empty %}
@@ -724,9 +730,15 @@ function showDynamicToast(message, type) {
                 </a>
                 
                 {% if f.following != user %}
-                <button class="btn-modal-follow" data-username="{{ f.following.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid {% if f.following.id in my_following_ids %}rgba(255,255,255,0.15){% else %}var(--neon-purple){% endif %}; color: {% if f.following.id in my_following_ids %}var(--text-dim){% else %}var(--neon-purple){% endif %}; padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
-                    {% if f.following.id in my_following_ids %}Following{% else %}Follow{% endif %}
-                </button>
+                    {% if f.following.id in my_following_ids %}
+                    <button class="btn-modal-follow" data-username="{{ f.following.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--text-dim); padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
+                        Following
+                    </button>
+                    {% else %}
+                    <button class="btn-modal-follow" data-username="{{ f.following.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
+                        Follow
+                    </button>
+                    {% endif %}
                 {% endif %}
             </div>
             {% empty %}
@@ -742,7 +754,11 @@ function showDynamicToast(message, type) {
         <span class="modal-trailer-close" id="closeAvatarModalBtn" style="position: absolute; top: 15px; right: 20px; font-size: 2rem; color: #fff; cursor: pointer; transition: color 0.2s; z-index: 10;">&times;</span>
         
         <!-- Blurred Background -->
-        <div style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 18, 28, 0.9), rgba(18, 18, 28, 0.9)), {% if profile_user.profile.profile_picture %}url('{{ profile_user.profile.profile_picture.url }}'){% else %}linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)){% endif %} no-repeat center center/cover; filter: blur(20px); opacity: 0.15; z-index: 1;"></div>
+        {% if profile_user.profile.profile_picture %}
+        <div style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 18, 28, 0.9), rgba(18, 18, 28, 0.9)), url('{{ profile_user.profile.profile_picture.url }}') no-repeat center center/cover; filter: blur(20px); opacity: 0.15; z-index: 1;"></div>
+        {% else %}
+        <div style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 18, 28, 0.9), rgba(18, 18, 28, 0.9)), linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)) no-repeat center center/cover; filter: blur(20px); opacity: 0.15; z-index: 1;"></div>
+        {% endif %}
         
         <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center;">
             <!-- Title -->

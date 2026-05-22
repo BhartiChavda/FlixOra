@@ -7,11 +7,11 @@
 <a href="{% url 'dashboard' %}" class="btn-back">
     <i class="fa-solid fa-arrow-left"></i> Back
 </a>
-<div style="display: grid; grid-template-columns: 1fr 3fr; gap: 3rem;">
+<div class="search-layout-wrapper">
 
     <!-- Left Column: Filters Sidebar -->
     <div>
-        <div class="rating-action-card" style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); position: sticky; top: 100px;">
+        <div class="rating-action-card search-filters-sidebar" style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan);">
             <h3 style="color: var(--neon-cyan); font-size: 1.2rem; margin-bottom: 1.5rem;"><i class="fa-solid fa-filter"></i> Search Filters</h3>
             
             <form action="{% url 'search_filter' %}" method="GET" style="display: flex; flex-direction: column; gap: 1.2rem;">
@@ -97,7 +97,7 @@
                 Matching Movies ({{ movies|length }})
             </h3>
             
-            <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div class="dashboard-grid search-results-grid">
                 {% for movie in movies %}
                 <div class="movie-card-container">
                     <div class="movie-card-inner">
@@ -133,7 +133,7 @@
                 {% if is_filtered %}All Library Movies{% else %}Explore Entire Library ({{ all_movies|length }}){% endif %}
             </h3>
             
-            <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div class="dashboard-grid search-results-grid">
                 {% for movie in all_movies %}
                 <div class="movie-card-container">
                     <div class="movie-card-inner">
@@ -166,7 +166,7 @@
                 Critics Matches ({{ users.count }})
             </h3>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="critics-grid">
                 {% for match_user in users %}
                 <div class="rating-action-card" style="display: flex; gap: 1rem; align-items: center; border-color: rgba(176,38,255,0.25); background: rgba(176,38,255,0.02);">
                     <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 1.2rem;">

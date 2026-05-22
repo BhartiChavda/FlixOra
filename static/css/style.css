@@ -1025,23 +1025,6 @@ body {
     .brand-logo {
         font-size: 1.5rem;
     }
-    .nav-search-form.desktop-search {
-        display: none !important;
-    }
-    .nav-search-form.mobile-search {
-        display: flex !important;
-        margin-left: 0 !important;
-        margin-bottom: 1.2rem !important;
-        width: 100% !important;
-        background: rgba(255, 255, 255, 0.08) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        box-sizing: border-box !important;
-    }
-    .nav-search-form.mobile-search .nav-search-input {
-        width: 100% !important;
-        font-size: 0.95rem !important;
-        padding: 0.2rem 0 !important;
-    }
 }
 
 @media(max-width: 768px) {
@@ -1297,44 +1280,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 136, 255, 0.2);
 }
 
-/* CineMood++ V3 Additions */
-.nav-search-form.mobile-search {
-    display: none;
-}
-.nav-search-form {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 30px;
-    padding: 0.3rem 1rem;
-    margin-left: 2rem;
-    transition: all 0.3s ease;
-}
-.nav-search-form:focus-within {
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-}
-.nav-search-input {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 0.9rem;
-    outline: none;
-    width: 220px;
-    font-family: inherit;
-}
-.nav-search-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-dim);
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-left: 0.5rem;
-}
-.nav-search-btn:hover {
-    color: var(--neon-cyan);
-}
+
 
 .bell-badge {
     position: absolute;
@@ -1713,23 +1659,100 @@ select.form-input option {
 
 /* Mobile Responsiveness Improvements */
 @media (max-width: 600px) {
-    /* Scrollable rows are already naturally responsive and need no overrides */
+    .main-content {
+        padding: 1.2rem 0.8rem !important;
+        margin-top: 85px !important;
+    }
+    .mood-panel {
+        max-height: 1000px;
+        padding: 2rem 1rem 1.5rem 1rem !important;
+    }
     .section-title {
-        font-size: 1.3rem !important;
-        padding-left: 0.6rem !important;
+        font-size: 1.2rem !important;
+        padding-left: 0.5rem !important;
+    }
+    .movie-row {
+        gap: 0.8rem !important;
+        padding: 0.8rem 0.2rem 1.2rem 0.2rem !important;
     }
     .dashboard-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
-        gap: 1.2rem !important;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+        gap: 0.8rem !important;
+        margin-top: 1rem !important;
     }
     .movie-card-container {
-        max-width: 100% !important;
+        max-width: 155px !important;
+        height: 245px !important;
+    }
+    .card-badge-type {
+        font-size: 0.55rem !important;
+        padding: 0.12rem 0.35rem !important;
+        top: 6px !important;
+        left: 6px !important;
+        border-radius: 5px !important;
+    }
+    .card-badge-rating {
+        font-size: 0.55rem !important;
+        padding: 0.12rem 0.35rem !important;
+        top: 6px !important;
+        right: 6px !important;
+        border-radius: 5px !important;
+    }
+    .card-badge-mood {
+        font-size: 0.55rem !important;
+        padding: 0.12rem 0.35rem !important;
+        bottom: 6px !important;
+        left: 6px !important;
+        border-radius: 5px !important;
+    }
+    .card-front-overlay {
+        padding: 0.5rem 0.4rem !important;
     }
     .card-front-title {
-        font-size: 0.9rem !important;
+        font-size: 0.75rem !important;
     }
     .card-front-meta {
-        font-size: 0.65rem !important;
+        font-size: 0.55rem !important;
+        margin-top: 0.05rem !important;
+    }
+    .movie-card-back {
+        padding: 0.6rem !important;
+        border-radius: 16px !important;
+    }
+    .card-back-title {
+        font-size: 0.78rem !important;
+        margin-bottom: 0.15rem !important;
+        -webkit-line-clamp: 2 !important;
+    }
+    .card-back-meta {
+        font-size: 0.6rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    .movie-card-back > div:nth-of-type(2) {
+        font-size: 0.6rem !important;
+        margin-bottom: 0.2rem !important;
+        padding-bottom: 2px !important;
+    }
+    .card-back-desc {
+        display: none !important;
+    }
+    .card-back-ai {
+        margin-bottom: 0.3rem !important;
+        padding: 0.15rem !important;
+        font-size: 0.6rem !important;
+    }
+    .card-back-ai strong {
+        font-size: 0.6rem !important;
+    }
+    .ai-recommend {
+        font-size: 0.55rem !important;
+        padding: 0.1rem 0.25rem !important;
+        margin: 0 !important;
+    }
+    .card-back-btn a {
+        padding: 0.3rem !important;
+        font-size: 0.68rem !important;
+        border-radius: 6px !important;
     }
 }
 
@@ -2125,3 +2148,68 @@ select.form-input option {
         width: 100%;
     }
 }
+
+/* Search & Filter Layout CSS */
+.search-layout-wrapper {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.search-filters-sidebar {
+    position: sticky;
+    top: 100px;
+}
+
+.search-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.critics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 992px) {
+    .search-layout-wrapper {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .search-filters-sidebar {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+
+.watchlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.2rem;
+}
+
+@media (max-width: 600px) {
+    .search-results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+        gap: 0.8rem !important;
+    }
+    
+    .watchlist-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+        gap: 0.8rem !important;
+    }
+    
+    .critics-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .movie-card-back a {
+        padding: 0.3rem !important;
+        font-size: 0.68rem !important;
+        border-radius: 6px !important;
+    }
+}
+
