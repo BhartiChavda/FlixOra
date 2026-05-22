@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | FlixOra{% endblock %}
+
+{% block content %}
+<!-- Featured Hero Section -->
+<div class="hero-section" style="display: flex; flex-direction: column; justify-content: center; border-radius: 30px; margin-bottom: 3.5rem; border: 1px solid rgba(255,255,255,0.06); position: relative; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.9);">
+    <!-- Slideshow Backgrounds -->
+    <div class="hero-slideshow" style="position: absolute; inset: 0; z-index: 1;">
+        <div class="hero-slide active" style="background: linear-gradient(rgba(0,0,0,0.35), #0d0d0d), url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1920') no-repeat center center/cover; position: absolute; inset: 0; opacity: 1; transition: opacity 1.5s ease-in-out;"></div>
+        <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.35), #0d0d0d), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1920') no-repeat center center/cover; position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease-in-out;"></div>
+        <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.35), #0d0d0d), url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1920') no-repeat center center/cover; position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease-in-out;"></div>
+        <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.35), #0d0d0d), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1920') no-repeat center center/cover; position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease-in-out;"></div>
+        <div class="hero-slide" style="background: linear-gradient(rgba(0,0,0,0.35), #0d0d0d), url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=1920') no-repeat center center/cover; position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease-in-out;"></div>
+    </div>
+    <div style="position: absolute; inset: 0; background: radial-gradient(circle at 20% 50%, rgba(116, 13, 246, 0.15), transparent 70%); z-index: 2; pointer-events: none;"></div>
+    <div style="max-width: 650px; z-index: 3; position: relative;">
+        <span style="background: rgba(116, 13, 246, 0.25); border: 1px solid #740DF6; color: #fff; padding: 6px 14px; border-radius: 12px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block; margin-bottom: 1.2rem; box-shadow: 0 0 10px rgba(116, 13, 246, 0.4);">★ Welcome Premiere</span>
+        <h1 class="hero-title" style="font-weight: 900; color: #fff; text-transform: uppercase; line-height: 1.1; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(0,0,0,0.8);">Welcome to FlixOra</h1>
+        <p class="hero-desc" style="color: rgba(255,255,255,0.75); line-height: 1.6; margin-bottom: 2.2rem; font-family: 'Outfit', sans-serif;">Your ultimate destination for social cinema. Join our elite community of critics to review movies, build public watchlists, share thoughts, and explore the universe of entertainment.</p>
+        <div style="display: flex; gap: 1.2rem; flex-wrap: wrap;">
+            <a href="#moviesGrid" class="btn-neon" style="padding: 0.9rem 1.8rem; font-size: 1rem;">
+                <i class="fa-solid fa-compass"></i> Explore Movies
+            </a>
+            <a href="{% url 'following_feed' %}" class="btn-neon" style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15); color: #fff; padding: 0.9rem 1.8rem; font-size: 1rem;">
+                <i class="fa-solid fa-users"></i> Critics Feed
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Collapsed Filters Trigger -->
+<div id="collapsedFiltersTrigger" class="collapsed-trigger" style="display: none;">
+    <button class="show-filters-btn">
+        <i class="fa-solid fa-sliders"></i> Filter Catalog
+    </button>
+</div>
+
+<!-- Content Type Selection Panel -->
+<div class="mood-panel" id="moodPanel">
+    <button id="closeFiltersBtn" class="close-panel-btn" title="Collapse Filters">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+    <h2 class="mood-title">
+        WHAT TYPE OF <span style="color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);">CONTENT</span> ARE YOU LOOKING FOR?
+    </h2>
+    <p style="color: var(--text-dim); margin-bottom: 2rem; font-size: 1rem;">Select a category, and our AI will recommend matching content instantly!</p>
+
+    <div class="mood-buttons">
+        <button class="mood-btn sad active" data-media-type="">
+            All
+        </button>
+        <button class="mood-btn happy" data-media-type="movie">
+            Movie
+        </button>
+        <button class="mood-btn sad" data-media-type="tv_show">
+            TV Show
+        </button>
+        <button class="mood-btn excited" data-media-type="web_series">
+            Web Series
+        </button>
+        <button class="mood-btn bored" data-media-type="ott">
+            OTT Originals
+        </button>
+        <button class="mood-btn documentary" data-media-type="documentary">
+            Documentary
+        </button>
+        <button class="mood-btn anime" data-media-type="anime">
+            Anime
+        </button>
+    </div>
+    
+    <!-- Language Filters Panel -->
+    <div class="lang-panel" style="margin-top: 1.8rem; display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <span style="color: var(--text-dim); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">Language:</span>
+        <div class="lang-buttons" style="display: flex; gap: 0.5rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 0.3rem; border-radius: 30px;">
+            <button class="lang-btn active" data-lang="">
+                All Languages
+            </button>
+            <button class="lang-btn" data-lang="english">
+                English
+            </button>
+            <button class="lang-btn" data-lang="hindi">
+                Hindi
+            </button>
+        </div>
+    </div>
+
+    <!-- Catalog Search Bar -->
+    <form action="{% url 'search_filter' %}" method="GET" class="catalog-search-wrap" style="max-width: 500px; margin: 1.8rem auto 0 auto; position: relative;">
+        <input type="text" name="q" id="catalogSearchInput" placeholder="Search catalog by title, genre, or keywords..." style="width: 100%; padding: 0.8rem 3.5rem 0.8rem 1.2rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 30px; color: #fff; font-size: 0.95rem; outline: none; transition: all 0.3s ease; box-sizing: border-box;">
+        <button type="submit" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-dim); cursor: pointer; transition: all 0.3s ease; padding: 0.5rem; display: flex; align-items: center; justify-content: center; outline: none;" onmouseover="this.style.color='var(--neon-cyan)';" onmouseout="this.style.color='var(--text-dim)';">
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 1.1rem;"></i>
+        </button>
+    </form>
+</div>
+
+<!-- Netflix Style Trending Row -->
+{% if trending_movies %}
+<div class="movie-section" id="trendingMoviesSection" style="margin-bottom: 4rem;">
+    <div class="section-header">
+        <h3 class="section-title" style="border-left-color: var(--neon-pink); text-shadow: 0 0 10px rgba(255, 0, 127, 0.2);">
+            Trending Movies
+        </h3>
+        <span style="font-size: 0.8rem; font-weight: 800; color: var(--neon-pink); text-transform: uppercase; letter-spacing: 1px;">Dynamic Vibe Weighted ranking</span>
+    </div>
+    
+    <div class="movie-row-wrapper">
+        <div class="movie-row no-scrollbar">
+            {% for movie in trending_movies %}
+            <div class="movie-card-container">
+                <div class="movie-card-inner">
+                    <!-- Front -->
+                    <div class="movie-card-front">
+                        <img src="{{ movie.get_poster }}" alt="{{ movie.title }}" class="card-poster" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                        
+                        <div class="card-badge-type">
+                            {{ movie.get_media_type_display }}
+                        </div>
+                        
+                        <div class="card-badge-rating" style="border-color: var(--neon-yellow); box-shadow: var(--glow-yellow);">
+                            <i class="fa-solid fa-star" style="color: var(--neon-yellow);"></i>
+                            <span>{{ movie.overall_rating|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="card-badge-mood" style="border-color: var(--neon-pink); box-shadow: var(--glow-pink);">
+                            {{ movie.heat_meter }}
+                        </div>
+                    </div>
+                    
+                    <!-- Back -->
+                    <div class="movie-card-back" style="border-color: rgba(255, 0, 127, 0.3);">
+                        <h3 class="card-back-title">{{ movie.title }}</h3>
+                        <div class="card-back-meta" style="font-size: 0.75rem; margin-bottom: 0.3rem;">
+                            <span>{{ movie.release_date|date:"Y" }}</span> • <span>{{ movie.genre }}</span>
+                        </div>
+                        
+                        <div style="font-size: 0.72rem; color: var(--neon-cyan); margin-bottom: 0.4rem; text-align: left; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 3px; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                            {{ movie.cast_info|default:"Cast details coming soon..." }}
+                        </div>
+                        
+                        <p class="card-back-desc" style="font-size: 0.8rem; margin-bottom: 0.5rem; line-height: 1.4;">{{ movie.description }}</p>
+                        
+                        <div class="card-back-ai" style="margin-bottom: 0.8rem; padding: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+                            <strong>AI Verdict:</strong>
+                            {% if movie.overall_rating and movie.overall_rating >= 7.0 or not movie.overall_rating %}
+                                <span class="ai-recommend ai-watch" style="margin: 0;">WATCH 👍</span>
+                            {% else %}
+                                <span class="ai-recommend ai-skip" style="margin: 0;">SKIP 👎</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-back-btn">
+                            <a href="{% url 'movie_detail' movie.id %}" class="btn-neon form-btn-full" style="display: block; text-align: center; border-color: var(--neon-pink); box-shadow: var(--glow-pink); padding: 0.5rem;">
+                                <i class="fa-solid fa-comments"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- AI Critic Matches Section (AI recommendations) -->
+{% if ai_recommendations %}
+<div class="movie-section" id="aiRecommendationsSection" style="margin-bottom: 4rem;">
+    <div class="section-header">
+        <h3 class="section-title" style="border-left-color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0, 243, 255, 0.2);">
+            AI Critic Matches
+        </h3>
+        <span style="font-size: 0.8rem; font-weight: 800; color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 1px;">Recommended for your taste</span>
+    </div>
+    
+    <div class="movie-row-wrapper">
+        <div class="movie-row no-scrollbar">
+            {% for movie in ai_recommendations %}
+            <div class="movie-card-container">
+                <div class="movie-card-inner">
+                    <!-- Front -->
+                    <div class="movie-card-front">
+                        <img src="{{ movie.get_poster }}" alt="{{ movie.title }}" class="card-poster" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                        
+                        <div class="card-badge-type">
+                            {{ movie.get_media_type_display }}
+                        </div>
+                        
+                        <div class="card-badge-rating" style="border-color: var(--neon-yellow); box-shadow: var(--glow-yellow);">
+                            <i class="fa-solid fa-star" style="color: var(--neon-yellow);"></i>
+                            <span>{{ movie.overall_rating|default:"N/A" }}</span>
+                        </div>
+                        
+                        <div class="card-badge-mood" style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan);">
+                            AI Match
+                        </div>
+                    </div>
+                    
+                    <!-- Back -->
+                    <div class="movie-card-back" style="border-color: rgba(0, 243, 255, 0.3);">
+                        <h3 class="card-back-title">{{ movie.title }}</h3>
+                        <div class="card-back-meta" style="font-size: 0.75rem; margin-bottom: 0.3rem;">
+                            <span>{{ movie.release_date|date:"Y" }}</span> • <span>{{ movie.genre }}</span>
+                        </div>
+                        
+                        <div style="font-size: 0.72rem; color: var(--neon-cyan); margin-bottom: 0.4rem; text-align: left; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 3px; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                            {{ movie.cast_info|default:"Cast details coming soon..." }}
+                        </div>
+                        
+                        <p class="card-back-desc" style="font-size: 0.8rem; margin-bottom: 0.5rem; line-height: 1.4;">{{ movie.description }}</p>
+                        
+                        <div class="card-back-ai" style="margin-bottom: 0.8rem; padding: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+                            <strong>AI Match:</strong>
+                            <span class="ai-recommend ai-watch" style="background: rgba(0, 243, 255, 0.1); border-color: var(--neon-cyan); color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin: 0;">MATCHED 🔥</span>
+                        </div>
+                        
+                        <div class="card-back-btn">
+                            <a href="{% url 'movie_detail' movie.id %}" class="btn-neon form-btn-full" style="display: block; text-align: center; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); padding: 0.5rem;">
+                                <i class="fa-solid fa-comments"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Explore/Dynamic Selection Section -->
+<div class="movie-section">
+    <div class="section-header">
+        <h3 class="section-title" id="dynamicSectionTitle">
+            {% if selected_media_type %}Explore <span style="color: var(--neon-cyan); text-shadow: var(--glow-cyan);">{{ selected_media_type|title }}</span>{% else %}Explore Library{% endif %}
+        </h3>
+    </div>
+    
+    <div class="dashboard-grid" id="moviesGrid">
+        {% for movie in movies %}
+        <div class="movie-card-container">
+            <div class="movie-card-inner">
+                <!-- Front -->
+                <div class="movie-card-front">
+                    <img src="{{ movie.get_poster }}" alt="{{ movie.title }}" class="card-poster" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                    
+                    <div class="card-badge-type">
+                        {{ movie.get_media_type_display }}
+                    </div>
+                    
+                    <div class="card-badge-rating">
+                        <i class="fa-solid fa-star" style="color: var(--neon-yellow);"></i>
+                        <span>{{ movie.overall_rating|default:"N/A" }}</span>
+                    </div>
+                    
+                    <div class="card-front-overlay">
+                        <h4 class="card-front-title">{{ movie.title }}</h4>
+                        <span class="card-front-meta">{{ movie.genre }}</span>
+                    </div>
+                </div>
+                
+                <!-- Back -->
+                <div class="movie-card-back">
+                    <h3 class="card-back-title">{{ movie.title }}</h3>
+                    <div class="card-back-meta" style="font-size: 0.75rem; margin-bottom: 0.3rem;">
+                        <span>{{ movie.release_date|date:"Y" }}</span> • <span>{{ movie.genre }}</span>
+                    </div>
+                    
+                    <div style="font-size: 0.72rem; color: var(--neon-cyan); margin-bottom: 0.4rem; text-align: left; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 3px; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                        {{ movie.cast_info|default:"Cast details coming soon..." }}
+                    </div>
+                    
+                    <p class="card-back-desc" style="font-size: 0.8rem; margin-bottom: 0.5rem; line-height: 1.4;">{{ movie.description }}</p>
+                    
+                    <div class="card-back-ai" style="margin-bottom: 0.8rem; padding: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+                        <strong>AI Verdict:</strong>
+                        {% if movie.overall_rating and movie.overall_rating >= 7.0 or not movie.overall_rating %}
+                            <span class="ai-recommend ai-watch" style="margin: 0;">WATCH 👍</span>
+                        {% else %}
+                            <span class="ai-recommend ai-skip" style="margin: 0;">SKIP 👎</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-back-btn">
+                        <a href="{% url 'movie_detail' movie.id %}" class="btn-neon form-btn-full" style="display: block; text-align: center; padding: 0.5rem;">
+                            <i class="fa-solid fa-comments"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-movies" style="grid-column: 1/-1; text-align: center; padding: 4rem 2rem; background: var(--bg-card); border-radius: 24px; border: 1px dashed var(--border-glass);">
+            <i class="fa-solid fa-ghost" style="font-size: 3.5rem; color: var(--neon-purple); text-shadow: var(--glow-purple); margin-bottom: 1.2rem; display: block;"></i>
+            <h4 style="font-size: 1.3rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem;">No Movies Yet</h4>
+            <p style="color: var(--text-dim); font-size: 0.95rem;">Our catalog is empty! Admin passes can use "Add Movie" to start building the theater library.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Trailer Modal Popup -->
+<div class="modal-trailer" id="trailerModal">
+    <div class="modal-trailer-content">
+        <span class="modal-trailer-close" id="closeTrailerBtn">&times;</span>
+        <div class="video-wrap">
+            <iframe id="trailerIframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slides = document.querySelectorAll('.hero-slide');
+        if (slides.length > 0) {
+            let currentSlide = 0;
+            
+            function nextSlide() {
+                slides[currentSlide].style.opacity = 0;
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].style.opacity = 1;
+            }
+            
+            setInterval(nextSlide, 5000); // Change image every 5 seconds
+        }
+    });
+</script>
+{% endblock %}

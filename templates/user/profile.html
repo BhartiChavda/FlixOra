@@ -1,0 +1,822 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }}'s Social Profile | FlixOra{% endblock %}
+
+{% block content %}
+<a href="{% url 'dashboard' %}" class="btn-back">
+    <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+<div class="profile-header" style="flex-wrap: wrap; gap: 2rem;">
+    <!-- Avatar and Details -->
+    <div class="profile-header-info">
+        <div class="profile-avatar-large" id="openAvatarModalBtn">
+            {% if profile_user.profile.profile_picture %}
+                <img src="{{ profile_user.profile.profile_picture.url }}" alt="{{ profile_user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            {% else %}
+                {{ profile_user.username|make_list|first|upper }}
+            {% endif %}
+        </div>
+        
+        <div class="profile-meta">
+            <h2 style="display: flex; align-items: center; gap: 8px;">
+                {{ profile_user.username }}
+                {% if profile_user.profile.verified %}
+                    <i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow); text-shadow: 0 0 10px rgba(255,251,0,0.6);" title="Verified Critic"></i>
+                {% endif %}
+            </h2>
+            <p style="margin-top: 0.5rem; color: var(--neon-cyan); text-shadow: 0 0 5px rgba(0, 243, 255, 0.2); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">
+                {% if profile_user.profile.verified %}<i class="fa-solid fa-crown"></i> Verified critic{% else %}<i class="fa-solid fa-user-astronaut"></i> FlixOra Critic{% endif %}
+            </p>
+            <p style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--text-dim);">Joined: {{ profile_user.date_joined|date:"M d, Y" }}</p>
+            
+            <!-- Follow Toggle Button -->
+            {% if user != profile_user %}
+            <button id="followBtn" data-username="{{ profile_user.username }}" class="btn-neon" style="margin-top: 1rem; border-color: var(--neon-cyan); padding: 0.4rem 1.2rem; font-size: 0.8rem;">
+                {% if is_following %}<i class="fa-solid fa-user-minus"></i> Unfollow{% else %}<i class="fa-solid fa-user-plus"></i> Follow{% endif %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Profile Stats Grid -->
+    <div style="margin-left: auto; display: flex; gap: 1.2rem; flex-wrap: wrap;" class="profile-stats">
+        <div onclick="openFollowersModal()" class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1rem 1.5rem; border-radius: 16px; text-align: center; min-width: 90px; cursor: pointer; transition: all 0.2s ease;">
+            <span style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800;">Followers</span>
+            <span id="followersCount" style="font-size: 1.8rem; font-weight: 900; color: var(--neon-cyan); text-shadow: var(--glow-cyan);">{{ profile_user.followers.count }}</span>
+        </div>
+        <div onclick="openFollowingModal()" class="stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1rem 1.5rem; border-radius: 16px; text-align: center; min-width: 90px; cursor: pointer; transition: all 0.2s ease;">
+            <span style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800;">Following</span>
+            <span id="followingCount" style="font-size: 1.8rem; font-weight: 900; color: var(--neon-purple); text-shadow: var(--glow-purple);">{{ profile_user.following.count }}</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1rem 1.5rem; border-radius: 16px; text-align: center; min-width: 90px;">
+            <span style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800;">Likes Recd</span>
+            <span style="font-size: 1.8rem; font-weight: 900; color: var(--neon-pink); text-shadow: var(--glow-pink);">{{ total_likes }}</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1rem 1.5rem; border-radius: 16px; text-align: center; min-width: 90px;">
+            <span style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800;">Reviews</span>
+            <span style="font-size: 1.8rem; font-weight: 900; color: var(--neon-yellow); text-shadow: 0 0 10px rgba(255,251,0,0.3);">{{ reviews.count }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="profile-content-grid">
+    
+    <!-- Left Column: Biography & Watchlists & Reviews -->
+    <div>
+        <!-- Biography box -->
+        <div class="rating-action-card" style="margin-bottom: 3rem;">
+            <h3 style="color: #fff; font-size: 1.3rem; margin-bottom: 0.8rem;"><i class="fa-solid fa-address-card" style="color: var(--neon-cyan);"></i> About Critic</h3>
+            <p style="line-height: 1.6; color: var(--text-dim);">
+                {% if profile_user.profile.bio %}
+                    {{ profile_user.profile.bio }}
+                {% else %}
+                    This critic hasn't shared a biography yet.
+                {% endif %}
+            </p>
+            
+            {% if user == profile_user %}
+            <!-- Settings Panel Toggle Button -->
+            <button onclick="toggleReplyForm('settingsPanelContainer')" class="btn-neon" style="margin-top: 1.2rem; font-size: 0.75rem; padding: 0.4rem 1rem;">
+                <i class="fa-solid fa-gears"></i> Settings & Style
+            </button>
+            
+            <div id="settingsPanelContainer" style="display: none; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem;">
+                <!-- Tab Headers -->
+                <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto;" class="settings-tabs">
+                    <button type="button" onclick="switchSettingsTab('profileTab')" class="btn-settings-tab active" id="profileTabBtn" style="background: none; border: none; color: var(--neon-cyan); font-weight: 800; font-size: 0.85rem; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s ease; border-bottom: 2px solid var(--neon-cyan);">
+                        <i class="fa-solid fa-user-edit"></i> Profile Info
+                    </button>
+                    <button type="button" onclick="switchSettingsTab('passwordTab')" class="btn-settings-tab" id="passwordTabBtn" style="background: none; border: none; color: var(--text-dim); font-weight: 800; font-size: 0.85rem; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s ease;">
+                        <i class="fa-solid fa-lock"></i> Password
+                    </button>
+                    <button type="button" onclick="switchSettingsTab('emailTab')" class="btn-settings-tab" id="emailTabBtn" style="background: none; border: none; color: var(--text-dim); font-weight: 800; font-size: 0.85rem; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s ease;">
+                        <i class="fa-solid fa-envelope"></i> Email Settings
+                    </button>
+                    <button type="button" onclick="switchSettingsTab('themeTab')" class="btn-settings-tab" id="themeTabBtn" style="background: none; border: none; color: var(--text-dim); font-weight: 800; font-size: 0.85rem; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s ease;">
+                        <i class="fa-solid fa-palette"></i> Style Theme
+                    </button>
+                </div>
+
+                <!-- Tab 1: Profile Details -->
+                <div class="settings-tab-content" id="profileTabContent" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="profile">
+                        <div>
+                            <label class="form-label" style="display: block; margin-bottom: 0.4rem; color: var(--text-dim);">Biography Description</label>
+                            {{ profile_form.bio }}
+                        </div>
+                        <div>
+                            <label class="form-label" style="display: block; margin-bottom: 0.4rem; color: var(--text-dim);">Profile Avatar Picture</label>
+                            {{ profile_form.profile_picture }}
+                        </div>
+                        <button type="submit" class="btn-neon" style="align-self: flex-start; padding: 0.5rem 1.5rem;">
+                            Save Profile
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab 2: Change Password -->
+                <div class="settings-tab-content" id="passwordTabContent" style="display: none; flex-direction: column; gap: 1rem;">
+                    <form method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="password">
+                        
+                        {% for field in password_form %}
+                        <div>
+                            <label class="form-label" style="display: block; margin-bottom: 0.4rem; color: var(--text-dim);">{{ field.label }}</label>
+                            <div class="form-input-container">
+                                {{ field }}
+                            </div>
+                            {% if field.help_text %}
+                            <small style="color: var(--text-dim); font-size: 0.72rem; display: block; margin-top: 4px; line-height: 1.4;">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                            <span style="color: var(--neon-pink); font-size: 0.75rem; font-weight: 800; display: block; margin-top: 4px;"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                        
+                        <button type="submit" class="btn-neon" style="align-self: flex-start; padding: 0.5rem 1.5rem; border-color: var(--neon-purple); box-shadow: var(--glow-purple);">
+                            Change Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab 4: Email Settings -->
+                <div class="settings-tab-content" id="emailTabContent" style="display: none; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                        <div>
+                            <label class="form-label" style="display: block; margin-bottom: 0.4rem; color: var(--text-dim);">Current Email Address</label>
+                            <input type="text" value="{{ profile_user.email|default:'Not set' }}" disabled style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); color: var(--text-dim); font-weight: bold; cursor: not-allowed;">
+                        </div>
+                        
+                        <!-- Request form -->
+                        <div id="emailRequestForm">
+                            <div>
+                                <label class="form-label" style="display: block; margin-bottom: 0.4rem; color: var(--text-dim);">New Email Address</label>
+                                <input type="email" id="newEmailInput" placeholder="Enter new email address" style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #fff; outline: none; transition: border-color 0.2s;">
+                            </div>
+                            <button type="button" onclick="requestEmailChange()" class="btn-neon" style="margin-top: 1rem; align-self: flex-start; padding: 0.5rem 1.5rem; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan);">
+                                Send Verification OTP
+                            </button>
+                        </div>
+                        
+                        <!-- Verify form -->
+                        <div id="emailVerifyForm" style="display: none; background: rgba(255,255,255,0.02); border: 1px dashed var(--neon-cyan); border-radius: 16px; padding: 1.5rem; flex-direction: column; gap: 1rem;">
+                            <p style="font-size: 0.85rem; color: var(--neon-cyan); font-weight: bold; margin: 0;"><i class="fa-solid fa-circle-info"></i> A 6-digit OTP has been sent to your new email. Please verify below.</p>
+                            <div>
+                                <label class="form-label" style="display: block; margin-bottom: 0.4rem; color: var(--text-dim);">Enter OTP Code</label>
+                                <input type="text" id="emailOtpInput" placeholder="6-digit code" maxlength="6" style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #fff; outline: none; font-size: 1.1rem; text-align: center; letter-spacing: 4px; font-weight: bold;">
+                            </div>
+                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                <button type="button" onclick="verifyEmailChange()" class="btn-neon" style="padding: 0.5rem 1.5rem; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); color: #fff; background: rgba(0,243,255,0.05);">
+                                    Verify & Save
+                                </button>
+                                <button type="button" onclick="cancelEmailChange()" class="btn-neon" style="padding: 0.5rem 1.5rem; border-color: var(--text-dim); color: var(--text-dim); background: none;">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Change Theme -->
+                <div class="settings-tab-content" id="themeTabContent" style="display: none; flex-direction: column; gap: 1rem;">
+                    <h4 style="font-size: 0.85rem; color: #fff; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem;">Select Accent Color Theme</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <button type="button" onclick="setAppTheme('default')" class="btn-theme-selector theme-default-btn" style="background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05); color: #fff; border-radius: 12px; padding: 0.8rem; cursor: pointer; text-align: left; transition: all 0.2s ease;">
+                            <div style="font-weight: 800; font-size: 0.9rem; color: #00f3ff;">Classic Cyber</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Cyan & Purple accents</div>
+                        </button>
+                        <button type="button" onclick="setAppTheme('emerald')" class="btn-theme-selector theme-emerald-btn" style="background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05); color: #fff; border-radius: 12px; padding: 0.8rem; cursor: pointer; text-align: left; transition: all 0.2s ease;">
+                            <div style="font-weight: 800; font-size: 0.9rem; color: #00ff88;">Emerald Oasis</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Green & Gold accents</div>
+                        </button>
+                        <button type="button" onclick="setAppTheme('sunset')" class="btn-theme-selector theme-sunset-btn" style="background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05); color: #fff; border-radius: 12px; padding: 0.8rem; cursor: pointer; text-align: left; transition: all 0.2s ease;">
+                            <div style="font-weight: 800; font-size: 0.9rem; color: #ff5e3a;">Sunset Glow</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Orange & Pink accents</div>
+                        </button>
+                        <button type="button" onclick="setAppTheme('crimson')" class="btn-theme-selector theme-crimson-btn" style="background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.05); color: #fff; border-radius: 12px; padding: 0.8rem; cursor: pointer; text-align: left; transition: all 0.2s ease;">
+                            <div style="font-weight: 800; font-size: 0.9rem; color: #ff0055;">Crimson Shadow</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Deep Red & Black accents</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Watchlist section -->
+        <div class="movie-section" style="margin-bottom: 3rem;">
+            <h3 class="section-title" style="border-left-color: var(--neon-cyan); margin-bottom: 2rem;">
+                Critics Watchlist Planner ({{ watchlists.count }})
+            </h3>
+            
+            <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem;">
+                {% for entry in watchlists %}
+                <a href="{% url 'movie_detail' entry.movie.id %}" class="movie-card-container" style="display: block; text-decoration: none; height: 260px;">
+                    <div class="movie-card-inner">
+                        <div class="movie-card-front">
+                            <img src="{{ entry.movie.get_poster }}" alt="{{ entry.movie.title }}" class="card-poster" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                            <div class="card-badge-rating" style="font-size: 0.7rem; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan);">
+                                {{ entry.get_status_display }}
+                            </div>
+                        </div>
+                        <div class="movie-card-back" style="padding: 0.8rem;">
+                            <h4 style="font-size: 0.9rem; font-weight: 800; color: #fff;">{{ entry.movie.title }}</h4>
+                            <p style="font-size: 0.7rem; color: var(--text-dim); margin-top: 0.3rem;">Status: {{ entry.get_status_display }}</p>
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <div style="grid-column: 1/-1; text-align: center; color: var(--text-dim); padding: 2rem 0;">
+                    <p>Watchlist planner is currently empty.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Published Review Bubbles list -->
+        <div class="movie-section">
+            <h3 class="section-title" style="border-left-color: var(--neon-purple); margin-bottom: 2rem;">
+                Critics Review Bubbles ({{ reviews.count }})
+            </h3>
+            
+            <div class="reviews-container">
+                {% for review in reviews %}
+                <div class="comic-bubble-wrapper">
+                    <div class="comic-bubble-user">
+                        <div class="comic-avatar" style="background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));">
+                            {{ review.movie.title|make_list|first|upper }}
+                        </div>
+                        <a href="{% url 'movie_detail' review.movie.id %}" class="comic-username" style="font-size: 0.75rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;">{{ review.movie.title }}</a>
+                    </div>
+                    
+                    <div class="comic-bubble">
+                        <div class="comic-bubble-header">
+                            <span class="comic-mood-badge" style="background: var(--neon-purple); color: #fff;">
+                                Score: {{ review.rating }}/10
+                            </span>
+                            <span style="font-size: 0.8rem; font-weight: 800; color: var(--neon-cyan);">
+                                review of: {{ review.movie.title }}
+                            </span>
+                        </div>
+                        <p style="font-size: 1rem; line-height: 1.4; color: #fff;">"{{ review.text }}"</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                    <p>No review bubbles published yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: User activity log -->
+    <div>
+        <div class="rating-action-card" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple);">
+            <h3 style="color: var(--neon-purple); font-size: 1.2rem; margin-bottom: 1.2rem;"><i class="fa-solid fa-clock-rotate-left"></i> Critic Activity Logs</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 500px; overflow-y: auto; padding-right: 0.5rem;" class="no-scrollbar">
+                {% for act in profile_user.activities.all|dictsortreversed:"created_at"|slice:":25" %}
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 0.75rem; border-radius: 12px; font-size: 0.85rem; line-height: 1.4;">
+                    <strong style="color: var(--neon-cyan);">{{ profile_user.username }}</strong> {{ act.action_text }}
+                    <span style="display: block; font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem;">{{ act.created_at|timesince }} ago</span>
+                </div>
+                {% empty %}
+                <p style="font-size: 0.85rem; color: var(--text-dim); text-align: center; padding: 1.5rem 0;">No activities recorded yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function toggleReplyForm(id) {
+    var f = document.getElementById(id);
+    if (f.style.display === "none") {
+        f.style.display = "block";
+    } else {
+        f.style.display = "none";
+    }
+}
+
+// Follow toggle via AJAX
+const followBtn = document.getElementById('followBtn');
+if (followBtn) {
+    followBtn.addEventListener('click', function() {
+        const username = this.getAttribute('data-username');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/user/${username}/follow/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.followed) {
+                this.innerHTML = '<i class="fa-solid fa-user-minus"></i> Unfollow';
+            } else {
+                this.innerHTML = '<i class="fa-solid fa-user-plus"></i> Follow';
+            }
+            document.getElementById('followersCount').textContent = data.follower_count;
+            document.getElementById('followingCount').textContent = data.following_count;
+            
+            // Sync with modal button if exists
+            const modalBtn = document.querySelector(`.btn-modal-follow[data-username="${username}"]`);
+            if (modalBtn) {
+                if (data.followed) {
+                    modalBtn.textContent = 'Following';
+                    modalBtn.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                    modalBtn.style.color = 'var(--text-dim)';
+                } else {
+                    modalBtn.textContent = 'Follow';
+                    modalBtn.style.borderColor = 'var(--neon-cyan)';
+                    modalBtn.style.color = 'var(--neon-cyan)';
+                }
+            }
+        });
+    });
+}
+
+function openFollowersModal() {
+    const modal = document.getElementById('followersModal');
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
+    }, 10);
+}
+function closeFollowersModal() {
+    const modal = document.getElementById('followersModal');
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
+function openFollowingModal() {
+    const modal = document.getElementById('followingModal');
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
+    }, 10);
+}
+function closeFollowingModal() {
+    const modal = document.getElementById('followingModal');
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
+
+function toggleModalFollow(btn) {
+    const username = btn.getAttribute('data-username');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/user/${username}/follow/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.followed) {
+            btn.textContent = 'Following';
+            btn.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+            btn.style.color = 'var(--text-dim)';
+        } else {
+            btn.textContent = 'Follow';
+            btn.style.borderColor = 'var(--neon-cyan)';
+            btn.style.color = 'var(--neon-cyan)';
+        }
+        
+        // Update main page counters
+        const followersCount = document.getElementById('followersCount');
+        const followingCount = document.getElementById('followingCount');
+        
+        if (username === "{{ profile_user.username }}") {
+            if (followersCount) followersCount.textContent = data.follower_count;
+            if (followingCount) followingCount.textContent = data.following_count;
+            
+            const mainFollowBtn = document.getElementById('followBtn');
+            if (mainFollowBtn) {
+                if (data.followed) {
+                    mainFollowBtn.innerHTML = '<i class="fa-solid fa-user-minus"></i> Unfollow';
+                } else {
+                    mainFollowBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Follow';
+                }
+            }
+        }
+        
+        // If current logged-in user unfollowed someone on their own profile, sync followingCount
+        if ("{{ user.username }}" === "{{ profile_user.username }}") {
+            if (followingCount) followingCount.textContent = data.following_count;
+        }
+    });
+}
+
+// Close modals on clicking background overlay
+document.addEventListener('click', function(e) {
+    const followersModal = document.getElementById('followersModal');
+    const followingModal = document.getElementById('followingModal');
+    if (e.target === followersModal) closeFollowersModal();
+    if (e.target === followingModal) closeFollowingModal();
+});
+
+// Settings Tab switching logic
+function switchSettingsTab(tabId) {
+    document.querySelectorAll('.settings-tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    document.querySelectorAll('.btn-settings-tab').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.color = 'var(--text-dim)';
+        btn.style.borderBottom = 'none';
+    });
+    
+    const activeContent = document.getElementById(tabId + 'Content');
+    if (activeContent) {
+        if (tabId === 'themeTab') {
+            activeContent.style.display = 'flex';
+        } else {
+            activeContent.style.display = 'block';
+        }
+    }
+    
+    const activeBtn = document.getElementById(tabId + 'Btn');
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        if (tabId === 'profileTab') {
+            activeBtn.style.color = 'var(--neon-cyan)';
+            activeBtn.style.borderBottom = '2px solid var(--neon-cyan)';
+        } else if (tabId === 'passwordTab') {
+            activeBtn.style.color = 'var(--neon-purple)';
+            activeBtn.style.borderBottom = '2px solid var(--neon-purple)';
+        } else if (tabId === 'emailTab') {
+            activeBtn.style.color = 'var(--neon-cyan)';
+            activeBtn.style.borderBottom = '2px solid var(--neon-cyan)';
+        } else if (tabId === 'themeTab') {
+            activeBtn.style.color = 'var(--neon-pink)';
+            activeBtn.style.borderBottom = '2px solid var(--neon-pink)';
+        }
+    }
+}
+
+// Highlight the active theme selector in the settings tab
+document.addEventListener("DOMContentLoaded", () => {
+    const savedThemeName = localStorage.getItem('FlixOra-theme') || 'default';
+    const activeBtn = document.querySelector(`.theme-${savedThemeName}-btn`);
+    if (activeBtn) {
+        const themesColors = {
+            default: '#00f3ff',
+            emerald: '#00ff88',
+            sunset: '#ff5e3a',
+            crimson: '#ff0055'
+        };
+        activeBtn.style.borderColor = themesColors[savedThemeName] || '#00f3ff';
+    }
+    
+    // Auto open settings card if URL contains #settingsPanelContainer or #editProfileForm
+    if (window.location.hash === '#settingsPanelContainer' || window.location.hash === '#editProfileForm') {
+        const container = document.getElementById('settingsPanelContainer');
+        if (container) {
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+});
+
+// Update the global theme switching function to also sync options border styling
+window.setAppTheme = function(themeName) {
+    const themes = {
+        default: {
+            '--neon-cyan': '#00f3ff',
+            '--neon-purple': '#b026ff',
+            '--neon-pink': '#ff007f',
+            '--glow-cyan': '0 0 15px rgba(0, 243, 255, 0.4)',
+            '--glow-purple': '0 0 15px rgba(176, 38, 255, 0.4)',
+            '--glow-pink': '0 0 15px rgba(255, 0, 127, 0.4)'
+        },
+        emerald: {
+            '--neon-cyan': '#00ff88',
+            '--neon-purple': '#00aaff',
+            '--neon-pink': '#ffaa00',
+            '--glow-cyan': '0 0 15px rgba(0, 255, 136, 0.4)',
+            '--glow-purple': '0 0 15px rgba(0, 170, 255, 0.4)',
+            '--glow-pink': '0 0 15px rgba(255, 170, 0, 0.4)'
+        },
+        sunset: {
+            '--neon-cyan': '#ff5e3a',
+            '--neon-purple': '#ff2a6d',
+            '--neon-pink': '#ffc72c',
+            '--glow-cyan': '0 0 15px rgba(255, 94, 58, 0.4)',
+            '--glow-purple': '0 0 15px rgba(255, 42, 109, 0.4)',
+            '--glow-pink': '0 0 15px rgba(255, 199, 44, 0.4)'
+        },
+        crimson: {
+            '--neon-cyan': '#ff0055',
+            '--neon-purple': '#9c0022',
+            '--neon-pink': '#ff5500',
+            '--glow-cyan': '0 0 15px rgba(255, 0, 85, 0.4)',
+            '--glow-purple': '0 0 15px rgba(156, 0, 34, 0.4)',
+            '--glow-pink': '0 0 15px rgba(255, 85, 0, 0.4)'
+        }
+    };
+    const theme = themes[themeName] || themes.default;
+    const root = document.documentElement;
+    Object.keys(theme).forEach(key => {
+        root.style.setProperty(key, theme[key]);
+    });
+    localStorage.setItem('FlixOra-theme', themeName);
+    
+    document.querySelectorAll('.btn-theme-selector').forEach(btn => {
+        btn.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+    });
+    const activeBtn = document.querySelector(`.theme-${themeName}-btn`);
+    if (activeBtn) {
+        activeBtn.style.borderColor = theme['--neon-cyan'];
+    }
+};
+
+function requestEmailChange() {
+    const newEmail = document.getElementById('newEmailInput').value.trim();
+    if (!newEmail) {
+        showDynamicToast('Please enter a valid email address.', 'error');
+        return;
+    }
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    const btn = document.querySelector('#emailRequestForm button');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    
+    fetch('/change-email/request/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ new_email: newEmail })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        
+        if (data.status === 'success') {
+            showDynamicToast(data.message, 'success');
+            document.getElementById('emailRequestForm').style.display = 'none';
+            const verifyForm = document.getElementById('emailVerifyForm');
+            verifyForm.style.display = 'flex';
+        } else {
+            showDynamicToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        console.error('Error:', error);
+        showDynamicToast('Failed to request email change. Please try again.', 'error');
+    });
+}
+
+function verifyEmailChange() {
+    const otpCode = document.getElementById('emailOtpInput').value.trim();
+    if (!otpCode || otpCode.length !== 6) {
+        showDynamicToast('Please enter the 6-digit verification code.', 'error');
+        return;
+    }
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/change-email/verify/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ otp_code: otpCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showDynamicToast(data.message, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showDynamicToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showDynamicToast('Failed to verify OTP. Please try again.', 'error');
+    });
+}
+
+function cancelEmailChange() {
+    document.getElementById('emailVerifyForm').style.display = 'none';
+    document.getElementById('emailRequestForm').style.display = 'block';
+    document.getElementById('emailOtpInput').value = '';
+}
+
+function showDynamicToast(message, type) {
+    let container = document.querySelector('.messages-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'messages-container';
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <span class="toast-text">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+    }, 3500);
+}
+</script>
+
+<!-- Followers Modal -->
+<div class="modal-followers" id="followersModal" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;">
+    <div style="background: rgba(10, 10, 15, 0.95); border: 1px solid var(--border-glass); border-radius: 24px; padding: 2rem; max-width: 400px; width: 90%; max-height: 70vh; display: flex; flex-direction: column; box-shadow: var(--glow-cyan); overflow: hidden;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.8rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;"><i class="fa-solid fa-users" style="color: var(--neon-cyan); margin-right: 6px;"></i> Followers</h3>
+            <button onclick="closeFollowersModal()" style="background: none; border: none; color: var(--text-dim); font-size: 1.6rem; cursor: pointer; transition: color 0.2s ease;">&times;</button>
+        </div>
+        <div style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 1rem; padding-right: 0.3rem;" class="modal-list-container">
+            {% for f in followers_list %}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                <a href="{% url 'user_profile' f.follower.username %}" style="display: flex; align-items: center; gap: 0.8rem; text-decoration: none; color: #fff;">
+                    <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; font-size: 1rem; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        {% if f.follower.profile.profile_picture %}
+                            <img src="{{ f.follower.profile.profile_picture.url }}" alt="{{ f.follower.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            {{ f.follower.username|make_list|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <span style="font-weight: 700; display: block; font-size: 0.9rem; color: #fff;">
+                            {{ f.follower.username }}
+                            {% if f.follower.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow); font-size: 0.75rem; margin-left: 2px;"></i>{% endif %}
+                        </span>
+                    </div>
+                </a>
+                
+                {% if f.follower != user %}
+                <button class="btn-modal-follow" data-username="{{ f.follower.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid {% if f.follower.id in my_following_ids %}rgba(255,255,255,0.15){% else %}var(--neon-cyan){% endif %}; color: {% if f.follower.id in my_following_ids %}var(--text-dim){% else %}var(--neon-cyan){% endif %}; padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
+                    {% if f.follower.id in my_following_ids %}Following{% else %}Follow{% endif %}
+                </button>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p style="text-align: center; color: var(--text-dim); margin: 2rem 0; font-size: 0.85rem;">No followers yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Following Modal -->
+<div class="modal-following" id="followingModal" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;">
+    <div style="background: rgba(10, 10, 15, 0.95); border: 1px solid var(--border-glass); border-radius: 24px; padding: 2rem; max-width: 400px; width: 90%; max-height: 70vh; display: flex; flex-direction: column; box-shadow: var(--glow-purple); overflow: hidden;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.8rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;"><i class="fa-solid fa-users" style="color: var(--neon-purple); margin-right: 6px;"></i> Following</h3>
+            <button onclick="closeFollowingModal()" style="background: none; border: none; color: var(--text-dim); font-size: 1.6rem; cursor: pointer; transition: color 0.2s ease;">&times;</button>
+        </div>
+        <div style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 1rem; padding-right: 0.3rem;" class="modal-list-container">
+            {% for f in following_list %}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                <a href="{% url 'user_profile' f.following.username %}" style="display: flex; align-items: center; gap: 0.8rem; text-decoration: none; color: #fff;">
+                    <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; font-size: 1rem; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        {% if f.following.profile.profile_picture %}
+                            <img src="{{ f.following.profile.profile_picture.url }}" alt="{{ f.following.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            {{ f.following.username|make_list|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div>
+                        <span style="font-weight: 700; display: block; font-size: 0.9rem; color: #fff;">
+                            {{ f.following.username }}
+                            {% if f.following.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow); font-size: 0.75rem; margin-left: 2px;"></i>{% endif %}
+                        </span>
+                    </div>
+                </a>
+                
+                {% if f.following != user %}
+                <button class="btn-modal-follow" data-username="{{ f.following.username }}" onclick="toggleModalFollow(this)" style="background: none; border: 1px solid {% if f.following.id in my_following_ids %}rgba(255,255,255,0.15){% else %}var(--neon-purple){% endif %}; color: {% if f.following.id in my_following_ids %}var(--text-dim){% else %}var(--neon-purple){% endif %}; padding: 0.35rem 0.9rem; border-radius: 10px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s ease;">
+                    {% if f.following.id in my_following_ids %}Following{% else %}Follow{% endif %}
+                </button>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p style="text-align: center; color: var(--text-dim); margin: 2rem 0; font-size: 0.85rem;">Not following anyone yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Preview Modal -->
+<div class="modal-trailer" id="avatarModal">
+    <div class="modal-trailer-content" style="background: #12121c; border: 1px solid var(--neon-cyan); box-shadow: var(--glow-cyan); border-radius: 24px; width: 100%; max-width: 450px; position: relative; overflow: hidden; padding: 2rem; text-align: center; box-sizing: border-box;">
+        <span class="modal-trailer-close" id="closeAvatarModalBtn" style="position: absolute; top: 15px; right: 20px; font-size: 2rem; color: #fff; cursor: pointer; transition: color 0.2s; z-index: 10;">&times;</span>
+        
+        <!-- Blurred Background -->
+        <div style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 18, 28, 0.9), rgba(18, 18, 28, 0.9)), {% if profile_user.profile.profile_picture %}url('{{ profile_user.profile.profile_picture.url }}'){% else %}linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)){% endif %} no-repeat center center/cover; filter: blur(20px); opacity: 0.15; z-index: 1;"></div>
+        
+        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center;">
+            <!-- Title -->
+            <h3 style="font-size: 1.3rem; font-weight: 900; color: #fff; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px;">
+                {{ profile_user.username }}'s Profile Photo
+            </h3>
+ 
+            <!-- Profile Photo Container -->
+            <div style="position: relative; width: 280px; height: 280px; border-radius: 50%; overflow: hidden; margin-bottom: 1.5rem; border: 3px solid var(--neon-cyan); box-shadow: var(--glow-cyan); background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center;">
+                {% if profile_user.profile.profile_picture %}
+                    <img src="{{ profile_user.profile.profile_picture.url }}" alt="{{ profile_user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    <span style="font-size: 8rem; font-weight: 900; color: #fff; text-shadow: var(--glow-cyan); display: flex; align-items: center; justify-content: center;">
+                        {{ profile_user.username|make_list|first|upper }}
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Upload Photo form if logged in user is the owner -->
+            {% if user == profile_user %}
+                <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.2rem;">
+                    You can update your profile photo below.
+                </p>
+                <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
+                <button type="button" class="btn-neon" onclick="document.getElementById('avatarFileInput').click()" style="display: inline-block; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); padding: 0.6rem 2rem; font-size: 0.85rem; background: rgba(0, 243, 255, 0.05); border-radius: 30px; cursor: pointer;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Photo
+                </button>
+            {% else %}
+                <p style="font-size: 0.85rem; color: var(--text-dim);">
+                    Registered FlixOra Critic Profile.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const openAvatarBtn = document.getElementById('openAvatarModalBtn');
+        const avatarModal = document.getElementById('avatarModal');
+        const closeAvatarBtn = document.getElementById('closeAvatarModalBtn');
+        const avatarFileInput = document.getElementById('avatarFileInput');
+
+        if (openAvatarBtn && avatarModal) {
+            openAvatarBtn.addEventListener('click', () => {
+                avatarModal.classList.add('active');
+            });
+        }
+
+        if (closeAvatarBtn && avatarModal) {
+            closeAvatarBtn.addEventListener('click', () => {
+                avatarModal.classList.remove('active');
+            });
+        }
+
+        // Close on clicking outside modal content
+        if (avatarModal) {
+            avatarModal.addEventListener('click', (e) => {
+                if (e.target === avatarModal) {
+                    avatarModal.classList.remove('active');
+                }
+            });
+        }
+
+        // Sync hidden file input in modal with the actual form input
+        if (avatarFileInput) {
+            avatarFileInput.addEventListener('change', (e) => {
+                const realInput = document.querySelector('input[name="profile_picture"]');
+                if (realInput) {
+                    realInput.files = e.target.files;
+                    realInput.closest('form').submit();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

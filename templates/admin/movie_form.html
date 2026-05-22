@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | FlixOra{% endblock %}
+
+{% block content %}
+{% if movie %}
+<a href="{% url 'movie_detail' movie.id %}" class="btn-back">
+    <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+{% else %}
+<a href="{% url 'admin_dashboard' %}" class="btn-back">
+    <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+{% endif %}
+<div class="form-card" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); max-width: 600px;">
+    <h2 class="form-title" style="text-shadow: 0 0 10px rgba(176, 38, 255, 0.4);">
+        {{ title }}
+    </h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div style="background: rgba(255,0,127,0.1); border: 1px solid var(--neon-pink); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #fff;">
+                <strong>Form validation errors:</strong>
+                <ul style="margin-top: 0.5rem; padding-left: 1.2rem;">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ field|title }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <span style="display:block; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">{{ field.help_text }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions" style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn-neon form-btn-full" style="flex: 1;">
+                <i class="fa-solid fa-save"></i> Save Movie
+            </button>
+            <a href="{% url 'admin_dashboard' %}" class="btn-neon logout-btn" style="flex: 1; text-align: center; text-decoration: none;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

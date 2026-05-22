@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Critics Feed | FlixOra{% endblock %}
+
+{% block content %}
+<div class="social-hub-container">
+    <!-- Main Content Area -->
+    <div class="social-hub-main">
+        <!-- Back Button -->
+        <a href="{% url 'dashboard' %}" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+        
+        <!-- Social Hub Tab Selection Header -->
+        <div class="social-hub-tabs">
+            <a href="{% url 'following_feed' %}" class="social-hub-tab-btn active">
+                <i class="fa-solid fa-people-group"></i> Critics Feed
+            </a>
+            <a href="{% url 'activity_feed' %}" class="social-hub-tab-btn">
+                <i class="fa-solid fa-bolt"></i> My Activity
+            </a>
+        </div>
+
+        <div class="reviews-container">
+            {% for review in reviews %}
+            <div class="comic-bubble-wrapper" style="margin-bottom: 2.5rem;">
+                <!-- User Avatar & Profile Links -->
+                <div class="comic-bubble-user">
+                    <a href="{% url 'user_profile' review.user.username %}" style="text-decoration: none;">
+                        <div class="comic-avatar" style="background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));">
+                            {% if review.user.profile.profile_picture %}
+                                <img src="{{ review.user.profile.profile_picture.url }}" alt="{{ review.user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            {% else %}
+                                {{ review.user.username|make_list|first|upper }}
+                            {% endif %}
+                        </div>
+                    </a>
+                    <a href="{% url 'user_profile' review.user.username %}" class="comic-username" style="font-weight: 800;">
+                        {{ review.user.username }}
+                        {% if review.user.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow);"></i>{% endif %}
+                    </a>
+                    <span style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">{{ review.created_at|date:"M d, Y" }}</span>
+                </div>
+
+                <!-- Review bubble contents -->
+                <div class="comic-bubble">
+                    <div class="comic-bubble-header">
+                        <a href="{% url 'movie_detail' review.movie.id %}" style="font-size: 0.95rem; font-weight: 900; color: var(--neon-cyan); text-decoration: none; text-transform: uppercase;">
+                            {{ review.movie.title }}
+                        </a>
+                        <span class="comic-mood-badge" style="background: var(--neon-pink); color: #fff;">
+                            Score: {{ review.rating }}/10
+                        </span>
+                    </div>
+                    
+                    <p style="line-height: 1.4; font-size: 1.05rem;">"{{ review.text }}"</p>
+                    
+                    <!-- Instagram-Style Reaction & Action Controls -->
+                    <div class="review-actions-container" style="margin-top: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1rem;">
+                        <div class="review-reactions-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; border-top: none; padding-top: 0; margin-top: 0;">
+                            <div style="display: flex; align-items: center; gap: 1.2rem;">
+                                <button class="btn-react btn-instagram-icon {% for r in review.likes.all %}{% if r.user == user %}liked{% endif %}{% endfor %}" data-review-id="{{ review.id }}" style="background: none; border: none; padding: 0; color: var(--text-dim); font-size: 1.35rem; cursor: pointer; transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center; box-shadow: none; outline: none;">
+                                    <i class="fa-regular fa-heart heart-empty" style="transition: color 0.2s ease;"></i>
+                                    <i class="fa-solid fa-heart heart-filled" style="display: none; color: #ff007f; filter: drop-shadow(0 0 8px rgba(255,0,127,0.5));"></i>
+                                    <span class="count" style="display: none;">{{ review.likes_count }}</span>
+                                </button>
+                                
+                                <a href="{% url 'movie_detail' review.movie.id %}" class="btn-instagram-icon btn-comment-icon" style="background: none; border: none; padding: 0; color: var(--text-dim); font-size: 1.35rem; cursor: pointer; transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                                    <i class="fa-regular fa-comment"></i>
+                                </a>
+                            </div>
+                            
+                            <button class="btn-instagram-icon btn-bookmark-icon {% for b in review.bookmarks.all %}{% if b.user == user %}bookmarked{% endif %}{% endfor %}" data-review-id="{{ review.id }}" style="background: none; border: none; padding: 0; color: var(--text-dim); font-size: 1.35rem; cursor: pointer; transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center; outline: none;">
+                                <i class="fa-regular fa-bookmark bookmark-empty"></i>
+                                <i class="fa-solid fa-bookmark bookmark-filled" style="display: none; color: var(--neon-cyan); filter: drop-shadow(0 0 8px rgba(0,243,255,0.5));"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Likes Count Display -->
+                        <div class="likes-count-row" style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-heart" style="color: #ff007f; font-size: 0.8rem;"></i>
+                            <span><span class="count">{{ review.likes_count }}</span> likes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-social-feed">
+                <i class="fa-solid fa-people-arrows" style="font-size: 3rem; color: var(--neon-cyan); text-shadow: var(--glow-cyan); margin-bottom: 1rem; display: block;"></i>
+                <h4 style="font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem;">Feed is Empty</h4>
+                <p style="color: var(--text-dim); font-size: 0.95rem;">You are not following anyone yet, or the critics you follow have not posted reviews. Explore recommendations on the right or user profiles to find critics!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar Area -->
+    <div class="social-hub-sidebar">
+        <!-- User Profile Card -->
+        <div class="sidebar-card user-profile-summary-card">
+            <div class="sidebar-card-header">Your Social Stats</div>
+            <div class="user-summary-body">
+                <a href="{% url 'user_profile' user.username %}" style="text-decoration: none;">
+                    <div class="user-summary-avatar" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));">
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {% else %}
+                            {{ user.username|make_list|first|upper }}
+                        {% endif %}
+                    </div>
+                </a>
+                <div class="user-summary-info">
+                    <div class="user-summary-name">
+                        {{ user.username }}
+                        {% if user.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow);"></i>{% endif %}
+                    </div>
+                    {% if user.profile.bio %}
+                        <div class="user-summary-bio">"{{ user.profile.bio|truncatechars:40 }}"</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="user-stats-row">
+                <div class="stat-box">
+                    <span class="stat-num">{{ user_reviews_count }}</span>
+                    <span class="stat-label">Reviews</span>
+                </div>
+                <div class="stat-box" style="cursor: pointer;" onclick="openConnectionsModal('{{ user.username }}', 'following')">
+                    <span class="stat-num" id="currentUserFollowingCount">{{ user_following_count }}</span>
+                    <span class="stat-label">Following</span>
+                </div>
+                <div class="stat-box" style="cursor: pointer;" onclick="openConnectionsModal('{{ user.username }}', 'followers')">
+                    <span class="stat-num">{{ user_followers_count }}</span>
+                    <span class="stat-label">Followers</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who to Follow Card -->
+        <div class="sidebar-card who-to-follow-card">
+            <div class="sidebar-card-header">Critics to Follow</div>
+            <div class="who-to-follow-list">
+                {% for critic in who_to_follow %}
+                <div class="who-to-follow-item">
+                    <a href="{% url 'user_profile' critic.username %}" style="text-decoration: none;">
+                        <div class="critic-item-avatar">
+                            {% if critic.profile.profile_picture %}
+                                <img src="{{ critic.profile.profile_picture.url }}" alt="{{ critic.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            {% else %}
+                                {{ critic.username|make_list|first|upper }}
+                            {% endif %}
+                        </div>
+                    </a>
+                    <div class="critic-item-info">
+                        <a href="{% url 'user_profile' critic.username %}" class="critic-item-name">
+                            {{ critic.username }}
+                        </a>
+                        {% if critic.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow); font-size:0.75rem;"></i>{% endif %}
+                    </div>
+                    <button class="btn-follow-toggle compact-follow" data-username="{{ critic.username }}">
+                        Follow
+                    </button>
+                </div>
+                {% empty %}
+                <div class="no-recommendations-text">No new critics to recommend right now. You are following everyone!</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+{% endblock %}

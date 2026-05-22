@@ -1,0 +1,769 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FlixOra | {{ movie.title }}{% endblock %}
+
+{% block content %}
+<style>
+    .avatar-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(0, 243, 255, 0.15) 0%, rgba(176, 38, 255, 0.15) 100%);
+        background-size: cover;
+        background-position: center;
+        border: 2px solid var(--neon-cyan);
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.2rem;
+        color: var(--neon-cyan);
+        text-shadow: var(--glow-cyan);
+        transition: all 0.3s ease;
+    }
+
+    .avatar-circle:hover {
+        transform: scale(1.08);
+        border-color: var(--neon-purple) !important;
+        box-shadow: var(--glow-purple) !important;
+        color: var(--neon-purple) !important;
+    }
+
+    .avatar-circle.director-theme {
+        background: linear-gradient(135deg, rgba(176, 38, 255, 0.15) 0%, rgba(0, 243, 255, 0.15) 100%);
+        background-size: cover;
+        background-position: center;
+        border-color: var(--neon-purple);
+        box-shadow: 0 0 10px rgba(176, 38, 255, 0.2);
+        color: var(--neon-purple);
+        text-shadow: var(--glow-purple);
+    }
+
+    .avatar-circle.director-theme:hover {
+        border-color: var(--neon-cyan) !important;
+        box-shadow: var(--glow-cyan) !important;
+        color: var(--neon-cyan) !important;
+    }
+
+    .modal-play-btn:hover {
+        transform: translate(-50%, -50%) scale(1.1) !important;
+        background: #ff3333 !important;
+        box-shadow: 0 0 35px rgba(255, 0, 0, 0.9) !important;
+    }
+
+</style>
+<a href="{% url 'dashboard' %}" class="btn-back">
+    <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+<div class="movie-detail-container">
+
+    <!-- Left Column: Poster, Watchlist & Admin Options -->
+    <div class="detail-poster-col">
+        <div class="detail-poster-wrap">
+            <img src="{{ movie.get_poster }}" alt="{{ movie.title }}"
+                onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+        </div>
+
+        <!-- Watch Trailer Button -->
+        {% if movie.trailer_url %}
+        <button id="openTrailerBtn" class="btn-neon"
+            style="display: block; width: 100%; text-align: center; border-color: #ff0000; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); padding: 0.9rem; margin-bottom: 0.5rem; background: rgba(255, 0, 0, 0.05); color: #fff; cursor: pointer;">
+            <i class="fa-brands fa-youtube" style="color: #ff0000; margin-right: 5px;"></i> Watch Trailer
+        </button>
+        <div style="font-size: 0.75rem; color: var(--text-dim); text-align: center; margin-bottom: 1.2rem; line-height: 1.4;">
+            <i class="fa-solid fa-circle-info" style="color: var(--neon-cyan);"></i> Click to view official trailer options.
+        </div>
+        {% endif %}
+
+        <!-- Watchlist System -->
+        <div class="rating-action-card"
+            style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); margin-bottom: 1rem;">
+            <h3 style="color: var(--neon-cyan); font-weight: 800; font-size: 1.1rem;"><i
+                    class="fa-solid fa-list-check"></i> Watchlist Planner</h3>
+            <form method="POST" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                {% csrf_token %}
+                <input type="hidden" name="submit_watchlist" value="1">
+
+                <div>
+                    <label class="form-label" style="margin-bottom: 0.3rem;">Planner Vibe Status</label>
+                    {{ watchlist_form.status }}
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 0.3rem;">
+                    {{ watchlist_form.is_public }}
+                    <label class="form-label" style="margin-bottom: 0; font-size: 0.85rem;">Make public to
+                        followers</label>
+                </div>
+
+                <button type="submit" class="btn-neon"
+                    style="border-color: var(--neon-cyan); align-self: flex-start; padding: 0.5rem 1.2rem; font-size: 0.75rem; margin-top: 0.5rem;">
+                    <i class="fa-solid fa-bookmark"></i> Save to Watchlist
+                </button>
+            </form>
+            {% if watchlist_entry %}
+            <p style="color: var(--neon-green); font-size: 0.8rem; margin-top: 0.6rem; font-weight: 700;">
+                <i class="fa-solid fa-circle-check"></i> Listed: <span style="text-transform: uppercase;">{{
+                    watchlist_entry.get_status_display }}</span> ({% if watchlist_entry.is_public %}Public{% else
+                %}Private{% endif %})
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- AI Verdict Suggestion -->
+        <div class="rating-action-card"
+            style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); text-align: center;">
+            <h3 style="color: var(--neon-cyan); margin-bottom: 0.8rem; font-weight: 800; font-size: 1.1rem;">AI Review
+                Verdict</h3>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem; line-height: 1.4;">Based on
+                category averages:</p>
+            {% if watch_suggestion == 'WATCH' %}
+            <div
+                style="font-size: 1.1rem; font-weight: 900; color: var(--neon-green); text-shadow: var(--glow-green); background: rgba(57,255,20,0.08); border: 2px solid var(--neon-green); padding: 0.6rem; border-radius: 16px; display: inline-block; width: 100%;">
+                🎬 WATCH SUGGESTED
+            </div>
+            {% else %}
+            <div
+                style="font-size: 1.1rem; font-weight: 900; color: var(--neon-pink); text-shadow: var(--glow-pink); background: rgba(255,0,127,0.08); border: 2px solid var(--neon-pink); padding: 0.6rem; border-radius: 16px; display: inline-block; width: 100%;">
+                ⚠️ SKIP SUGGESTED
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Admin Control Panel -->
+        {% if user.is_staff or user.is_superuser %}
+        <div class="rating-action-card"
+            style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); text-align: center; margin-top: 1rem;">
+            <h3 style="color: var(--neon-purple); margin-bottom: 1rem; font-weight: 800;">Admin Actions</h3>
+            <div style="display: flex; gap: 10px; flex-direction: column;">
+                <a href="{% url 'edit_movie' movie.id %}" class="btn-neon"
+                    style="display: block; text-align: center; border-color: var(--neon-purple); padding: 0.5rem;"><i
+                        class="fa-solid fa-edit"></i> Edit Movie</a>
+                <a href="{% url 'delete_movie' movie.id %}" class="btn-neon logout-btn"
+                    style="display: block; text-align: center; padding: 0.5rem;"><i class="fa-solid fa-trash"></i>
+                    Delete Movie</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Details, Score metrics, Forms, Reviews -->
+    <div class="detail-info-col">
+        <div class="detail-title-row">
+            <h1 class="detail-title">{{ movie.title }}</h1>
+            <div class="detail-meta">
+                <span class="detail-rating-pill">
+                    <i class="fa-solid fa-star"
+                        style="color: var(--neon-yellow); filter: drop-shadow(0 0 5px var(--neon-yellow));"></i>
+                    {{ movie.overall_rating|default:"Unrated" }} / 10
+                </span>
+                <span class="detail-genre-pill">{{ movie.genre }}</span>
+                <span><i class="fa-solid fa-calendar-days"></i> Released: {{ movie.release_date|date:"M d, Y" }}</span>
+            </div>
+        </div>
+
+        <!-- Plot Summary -->
+        <div>
+            <h2
+                style="font-size: 1.2rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.6rem; color: #fff;">
+                Plot Summary</h2>
+            <p class="detail-desc">{{ movie.description }}</p>
+            <!-- Cast Section -->
+            {% if movie.stars_details %}
+            <div style="margin-top: 2rem; margin-bottom: 1.5rem;">
+                <h2
+                    style="font-size: 1.1rem; font-weight: 800; text-transform: uppercase; margin-bottom: 1rem; color: #fff; letter-spacing: 0.5px; border-left: 4px solid var(--neon-cyan); padding-left: 0.6rem;">
+                    Cast</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: flex-start;">
+                    {% for star in movie.stars_details %}
+                    <a href="{{ star.google_url }}" target="_blank" class="cast-avatar-card"
+                        style="display: flex; flex-direction: column; align-items: center; text-decoration: none; gap: 0.6rem; transition: transform 0.2s ease; width: 90px;">
+                        <div class="avatar-circle">
+                            {% if star.image_url %}
+                            <img src="{{ star.image_url }}" alt="{{ star.name }}"
+                                style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">
+                            {% else %}
+                            <span class="avatar-initials">{{ star.initials }}</span>
+                            {% endif %}
+                        </div>
+                        <span
+                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-main); text-align: center; max-width: 90px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; display: block;"
+                            title="{{ star.name }}">
+                            {{ star.name }}
+                        </span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Director Section -->
+            {% if movie.director_details %}
+            <div style="margin-top: 1.5rem; margin-bottom: 2rem;">
+                <h2
+                    style="font-size: 1.1rem; font-weight: 800; text-transform: uppercase; margin-bottom: 1rem; color: #fff; letter-spacing: 0.5px; border-left: 4px solid var(--neon-purple); padding-left: 0.6rem;">
+                    Director</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: flex-start;">
+                    {% for dir in movie.director_details %}
+                    <a href="{{ dir.google_url }}" target="_blank" class="cast-avatar-card"
+                        style="display: flex; flex-direction: column; align-items: center; text-decoration: none; gap: 0.6rem; transition: transform 0.2s ease; width: 90px;">
+                        <div class="avatar-circle director-theme">
+                            {% if dir.image_url %}
+                            <img src="{{ dir.image_url }}" alt="{{ dir.name }}"
+                                style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">
+                            {% else %}
+                            <span class="avatar-initials">{{ dir.initials }}</span>
+                            {% endif %}
+                        </div>
+                        <span
+                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-main); text-align: center; max-width: 90px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; display: block;"
+                            title="{{ dir.name }}">
+                            {{ dir.name }}
+                        </span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Rating & Category Breakdown Board -->
+        <div class="rating-action-card"
+            style="display: grid; grid-template-columns: auto 1fr; gap: 2.5rem; align-items: center;">
+
+            <!-- Left Circular Progress Meter -->
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <h4 style="font-size: 0.85rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase;">
+                    Overall Rating</h4>
+                <div class="circle-wrap">
+                    <svg>
+                        <circle class="bg" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress" cx="60" cy="60" r="50"></circle>
+                    </svg>
+                    <div class="percentage" id="ratingValue" data-rating="{{ movie.overall_rating|default:0 }}">
+                        {{ movie.overall_rating|default:"N/A" }}
+                        <span>Score</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right category horizontal progress tracks -->
+            <div>
+                <h4
+                    style="font-size: 0.85rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem;">
+                    Category Breakdown</h4>
+
+                <div class="category-bar-container">
+                    <div class="category-bar-label">
+                        <span>Story</span>
+                        <span>{{ movie.story_avg|default:"Unrated" }}/10</span>
+                    </div>
+                    <div class="category-bar-track">
+                        <div class="category-bar-fill story" data-percent="{{ movie.story_percent }}"></div>
+                    </div>
+                </div>
+
+                <div class="category-bar-container">
+                    <div class="category-bar-label">
+                        <span>Acting</span>
+                        <span>{{ movie.acting_avg|default:"Unrated" }}/10</span>
+                    </div>
+                    <div class="category-bar-track">
+                        <div class="category-bar-fill acting" data-percent="{{ movie.acting_percent }}"></div>
+                    </div>
+                </div>
+
+                <div class="category-bar-container">
+                    <div class="category-bar-label">
+                        <span>Music</span>
+                        <span>{{ movie.music_avg|default:"Unrated" }}/10</span>
+                    </div>
+                    <div class="category-bar-track">
+                        <div class="category-bar-fill music" data-percent="{{ movie.music_percent }}"></div>
+                    </div>
+                </div>
+
+                <div class="category-bar-container">
+                    <div class="category-bar-label">
+                        <span>Visuals</span>
+                        <span>{{ movie.visual_avg|default:"Unrated" }}/10</span>
+                    </div>
+                    <div class="category-bar-track">
+                        <div class="category-bar-fill visuals" data-percent="{{ movie.visual_percent }}"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Submit Category Score Form -->
+        <div class="rating-action-card">
+            <h3><i class="fa-solid fa-star-half-stroke" style="color: var(--neon-yellow);"></i> Rate Categories</h3>
+            <form method="POST" style="margin-top: 1.2rem; display: flex; flex-direction: column; gap: 1rem;">
+                {% csrf_token %}
+                <input type="hidden" name="submit_rating" value="1">
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem;">
+                    <div>
+                        <label class="form-label" style="margin-bottom: 0.3rem;">Story Score (1-10)</label>
+                        {{ rating_form.story_rating }}
+                    </div>
+                    <div>
+                        <label class="form-label" style="margin-bottom: 0.3rem;">Acting Score (1-10)</label>
+                        {{ rating_form.acting_rating }}
+                    </div>
+                    <div>
+                        <label class="form-label" style="margin-bottom: 0.3rem;">Music Score (1-10)</label>
+                        {{ rating_form.music_rating }}
+                    </div>
+                    <div>
+                        <label class="form-label" style="margin-bottom: 0.3rem;">Visuals Score (1-10)</label>
+                        {{ rating_form.visual_rating }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-neon"
+                    style="border-color: var(--neon-yellow); box-shadow: 0 0 8px rgba(255, 251, 0, 0.2); align-self: flex-start; margin-top: 0.5rem; padding: 0.6rem 1.5rem;">
+                    {% if user_rating %}<i class="fa-solid fa-sync"></i> Update Scores{% else %}<i
+                        class="fa-solid fa-check"></i> Submit Scores{% endif %}
+                </button>
+            </form>
+            {% if user_rating %}
+            <p style="color: var(--neon-green); font-size: 0.85rem; margin-top: 0.8rem; font-weight: 700;">
+                <i class="fa-solid fa-check-circle"></i> Your personal overall score: <span
+                    style="font-size: 1.1rem;">{{ movie.overall_rating }}/10</span>
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Social Review Board Section -->
+        <div class="reviews-section">
+            <h2
+                style="font-size: 1.6rem; font-weight: 900; text-transform: uppercase; letter-spacing: -0.5px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; margin-bottom: 1.5rem;">
+                Critics Review Board <span style="color: var(--neon-purple);">({{ reviews.count }})</span>
+            </h2>
+
+            <!-- Submit Written Review Form -->
+            <div class="rating-action-card"
+                style="background: rgba(176, 38, 255, 0.03); border-color: rgba(176, 38, 255, 0.15);">
+                <h3 style="color: #fff;"><i class="fa-solid fa-pen-nib"></i> Publish a Review Bubble</h3>
+
+                <form method="POST" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1.2rem;">
+                    {% csrf_token %}
+                    <input type="hidden" name="submit_review" value="1">
+
+                    <div>
+                        <label class="form-label">Overall Movie Score (1-10):</label>
+                        {{ review_form.rating }}
+                    </div>
+
+                    <div>
+                        <label class="form-label">Review text description:</label>
+                        {{ review_form.text }}
+                    </div>
+
+                    <button type="submit" class="btn-neon" style="align-self: flex-start;">
+                        <i class="fa-solid fa-paper-plane"></i> Paste Bubble
+                    </button>
+                </form>
+            </div>
+
+            <!-- Comic Bubbles Display -->
+            <div class="reviews-container">
+                {% for review in reviews %}
+                <div class="comic-bubble-wrapper" id="review-{{ review.id }}">
+                    <!-- User Avatar -->
+                    <div class="comic-bubble-user">
+                        <a href="{% url 'user_profile' review.user.username %}" style="text-decoration: none;">
+                            <div class="comic-avatar">
+                                {% if review.user.profile.profile_picture %}
+                                    <img src="{{ review.user.profile.profile_picture.url }}" alt="{{ review.user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                {% else %}
+                                    {{ review.user.username|make_list|first|upper }}
+                                {% endif %}
+                            </div>
+                        </a>
+                        <a href="{% url 'user_profile' review.user.username %}" class="comic-username">
+                            {{ review.user.username }}
+                            {% if review.user.profile.verified %}
+                            <i class="fa-solid fa-circle-check verified-badge" title="Verified Reviewer"></i>
+                            {% endif %}
+                        </a>
+                        {% if review.user == user %}
+                        <a href="{% url 'delete_review' review.id %}"
+                            style="font-size: 0.75rem; color: var(--neon-pink); text-decoration: none; margin-top: 0.5rem;">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Comic Bubble Content -->
+                    <div class="comic-bubble">
+                        <div class="comic-bubble-header">
+                            <span class="comic-mood-badge" style="background: var(--neon-purple); color: #fff;">
+                                Score: {{ review.rating }}/10
+                            </span>
+                            <span class="comic-date">
+                                {{ review.created_at|date:"M d, Y" }}
+                            </span>
+                        </div>
+                        <p style="line-height: 1.4; font-size: 1.05rem;">"{{ review.text }}"</p>
+
+                        <!-- Instagram-Style Reaction & Action Controls -->
+                        <div class="review-actions-container"
+                            style="margin-top: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1rem;">
+                            <div class="review-reactions-row"
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; border-top: none; padding-top: 0; margin-top: 0;">
+                                <div style="display: flex; align-items: center; gap: 1.2rem;">
+                                    {% csrf_token %}
+                                    <button
+                                        class="btn-react btn-instagram-icon {% for r in review.likes.all %}{% if r.user == user %}liked{% endif %}{% endfor %}"
+                                        data-review-id="{{ review.id }}"
+                                        style="background: none; border: none; padding: 0; color: var(--text-dim); font-size: 1.35rem; cursor: pointer; transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center; box-shadow: none;">
+                                        <i class="fa-regular fa-heart heart-empty"
+                                            style="transition: color 0.2s ease;"></i>
+                                        <i class="fa-solid fa-heart heart-filled"
+                                            style="display: none; color: #ff007f; filter: drop-shadow(0 0 8px rgba(255,0,127,0.5));"></i>
+                                        <span class="count" style="display: none;">{{ review.likes_count }}</span>
+                                    </button>
+
+                                    <button class="btn-instagram-icon btn-comment-icon"
+                                        onclick="focusCommentInput('{{ review.id }}')"
+                                        style="background: none; border: none; padding: 0; color: var(--text-dim); font-size: 1.35rem; cursor: pointer; transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fa-regular fa-comment"></i>
+                                    </button>
+                                </div>
+
+                                <button
+                                    class="btn-instagram-icon btn-bookmark-icon {% for b in review.bookmarks.all %}{% if b.user == user %}bookmarked{% endif %}{% endfor %}"
+                                    data-review-id="{{ review.id }}"
+                                    style="background: none; border: none; padding: 0; color: var(--text-dim); font-size: 1.35rem; cursor: pointer; transition: transform 0.2s ease; display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="fa-regular fa-bookmark bookmark-empty"></i>
+                                    <i class="fa-solid fa-bookmark bookmark-filled"
+                                        style="display: none; color: var(--neon-cyan); filter: drop-shadow(0 0 8px rgba(0,243,255,0.5));"></i>
+                                </button>
+                            </div>
+
+                            <!-- Likes Count Display -->
+                            <div class="likes-count-row"
+                                style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-heart" style="color: #ff007f; font-size: 0.8rem;"></i>
+                                <span><span class="count">{{ review.likes_count }}</span> likes</span>
+                            </div>
+                        </div>
+
+                        <!-- Nested Comment threads (Reddit-Style) -->
+                        <div class="comment-thread-section"
+                            style="margin-top: 1.5rem; border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 1rem;">
+                            <h4
+                                style="font-size: 0.85rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.8rem;">
+                                <i class="fa-solid fa-comments"></i> Replies
+                            </h4>
+
+                            <!-- Root Comments Loop -->
+                            {% for comment in review.comments.all %}
+                            {% if not comment.parent %}
+                            <div class="comment-box"
+                                style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 0.8rem; margin-bottom: 0.8rem; color: #fff;">
+                                <div class="comment-meta">
+                                    <a href="{% url 'user_profile' comment.user.username %}" class="comment-username"
+                                        style="color: var(--neon-cyan); font-weight: 700; text-decoration: none;">
+                                        {{ comment.user.username }}
+                                        {% if comment.user.profile.verified %}<i
+                                            class="fa-solid fa-circle-check verified-badge"
+                                            style="color: var(--neon-yellow);"></i>{% endif %}
+                                    </a>
+                                    <span style="color: var(--text-dim); font-size: 0.75rem; margin-left: 5px;">• {{
+                                        comment.created_at|date:"M d, Y, h:i A" }}</span>
+                                </div>
+                                <p class="comment-text" style="color: #fff; font-size: 0.9rem; margin-top: 0.3rem;">{{
+                                    comment.text }}</p>
+
+                                <div class="comment-actions" style="margin-top: 0.5rem;">
+                                    <button class="comment-reply-btn"
+                                        onclick="toggleReplyForm('reply-form-{{ comment.id }}')"
+                                        style="background: none; border: none; color: var(--neon-cyan); font-size: 0.75rem; cursor: pointer; font-weight: 700;">
+                                        <i class="fa-solid fa-reply"></i> Reply
+                                    </button>
+                                </div>
+
+                                <!-- Reply box -->
+                                <form action="{% url 'add_comment' review.id %}" method="POST"
+                                    id="reply-form-{{ comment.id }}" class="ajax-comment-form"
+                                    style="display:none; margin-top: 0.6rem;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" name="text" placeholder="Write reply..." required
+                                            style="flex: 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 0.3rem 0.6rem; font-size: 0.85rem; background: rgba(0, 0, 0, 0.25); color: #fff;">
+                                        <button type="submit" class="btn-neon"
+                                            style="padding: 0.3rem 0.8rem; font-size: 0.75rem; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan);">Reply</button>
+                                    </div>
+                                </form>
+
+                                <!-- Nested replies (Level 2) -->
+                                {% for reply in comment.replies.all %}
+                                <div class="comment-thread"
+                                    style="margin-left: 1.2rem; margin-top: 0.6rem; border-left: 2px dashed rgba(255, 255, 255, 0.1); padding-left: 0.8rem;">
+                                    <div class="comment-box"
+                                        style="background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 0.8rem; margin-bottom: 0; color: #fff;">
+                                        <div class="comment-meta">
+                                            <a href="{% url 'user_profile' reply.user.username %}"
+                                                class="comment-username"
+                                                style="color: var(--neon-cyan); font-weight: 700; text-decoration: none;">
+                                                {{ reply.user.username }}
+                                                {% if reply.user.profile.verified %}<i
+                                                    class="fa-solid fa-circle-check verified-badge"
+                                                    style="color: var(--neon-yellow);"></i>{% endif %}
+                                            </a>
+                                            <span
+                                                style="color: var(--text-dim); font-size: 0.75rem; margin-left: 5px;">•
+                                                {{ reply.created_at|date:"M d, Y, h:i A" }}</span>
+                                        </div>
+                                        <p class="comment-text"
+                                            style="color: #fff; font-size: 0.85rem; margin-top: 0.3rem;">{{ reply.text
+                                            }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+
+                            <!-- Add comment form -->
+                            <form action="{% url 'add_comment' review.id %}" method="POST" class="ajax-comment-form"
+                                style="margin-top: 1rem; display: flex; gap: 10px;">
+                                {% csrf_token %}
+                                <input type="text" id="comment-input-{{ review.id }}" name="text"
+                                    placeholder="Leave a reply on this review bubble..." required
+                                    style="flex: 1; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.6rem 1rem; font-size: 0.85rem; background: rgba(0, 0, 0, 0.25); color: #fff;">
+                                <button type="submit" class="btn-neon"
+                                    style="padding: 0.6rem 1.2rem; font-size: 0.8rem; border-color: var(--neon-purple); box-shadow: var(--glow-purple);">
+                                    Publish
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; padding: 3rem 1rem; color: var(--text-dim);">
+                    <i class="fa-solid fa-comments"
+                        style="font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--neon-purple); opacity: 0.5;"></i>
+                    <p>No review bubbles have been posted yet. Be the first to share your score!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Related Movies Section (You Might Also Like) -->
+{% if related_movies %}
+<div class="movie-section" style="margin-top: 5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 3rem;">
+    <h3 class="section-title" style="border-left-color: var(--neon-cyan); margin-bottom: 2rem;">
+        You Might Also Like
+    </h3>
+
+    <div class="dashboard-grid"
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.8rem;">
+        {% for m in related_movies %}
+        <div class="movie-card-container">
+            <div class="movie-card-inner">
+                <div class="movie-card-front">
+                    <img src="{{ m.get_poster }}" alt="{{ m.title }}" class="card-poster"
+                        onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                    <div class="card-badge-rating">
+                        <i class="fa-solid fa-star" style="color: var(--neon-yellow);"></i>
+                        <span>{{ m.overall_rating|default:"N/A" }}</span>
+                    </div>
+                </div>
+                <div class="movie-card-back">
+                    <h3 class="card-back-title" style="font-size: 1rem;">{{ m.title }}</h3>
+                    <p class="card-back-desc" style="-webkit-line-clamp: 4; line-clamp: 4; font-size: 0.75rem;">{{ m.description }}</p>
+                    <a href="{% url 'movie_detail' m.id %}" class="btn-neon form-btn-full"
+                        style="display: block; text-align: center; padding: 0.4rem; font-size: 0.75rem; margin-top: auto;">
+                        Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Trailer Modal Popup -->
+<!-- Trailer Modal Popup -->
+<div class="modal-trailer" id="trailerModal">
+    <div class="modal-trailer-content" style="background: #12121c; border: 1px solid rgba(255, 0, 0, 0.35); box-shadow: 0 0 30px rgba(255, 0, 0, 0.2); border-radius: 24px; width: 100%; max-width: 500px; position: relative; overflow: hidden; padding: 2rem; text-align: center; box-sizing: border-box;">
+        <span class="modal-trailer-close" id="closeTrailerBtn" style="position: absolute; top: 15px; right: 20px; font-size: 2rem; color: #fff; cursor: pointer; transition: color 0.2s; z-index: 10;">&times;</span>
+        
+        <!-- Blurred Poster Background inside modal -->
+        <div style="position: absolute; inset: 0; background: linear-gradient(rgba(18, 18, 28, 0.95), rgba(18, 18, 28, 0.95)), url('{{ movie.get_poster }}') no-repeat center center/cover; filter: blur(20px); opacity: 0.15; z-index: 1;"></div>
+        
+        <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center;">
+            <!-- Brand header -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 1.2rem;">
+                <span style="color: #ff0000; font-size: 1.4rem; display: flex; align-items: center;"><i class="fa-brands fa-youtube"></i></span>
+                <span style="font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);">FlixOra Player</span>
+            </div>
+
+            <!-- Custom Play Card / Image -->
+            <div style="position: relative; width: 100%; height: 220px; border-radius: 16px; overflow: hidden; margin-bottom: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                <!-- Poster/Backdrop as preview -->
+                <img src="{{ movie.get_poster }}" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6);" alt="{{ movie.title }}" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                
+                <!-- Red Play Button -->
+                <a href="{{ movie.trailer_url }}" target="_blank" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: #ff0000; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.8rem; box-shadow: 0 0 25px rgba(255, 0, 0, 0.6); transition: all 0.25s ease; text-decoration: none;" class="modal-play-btn" id="modalPlayLink">
+                    <i class="fa-solid fa-play" style="margin-left: 5px; color: #fff;"></i>
+                </a>
+            </div>
+
+            <!-- Title & info -->
+            <h3 style="font-size: 1.2rem; font-weight: 900; color: #fff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ movie.title }}</h3>
+            <p style="font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.5; max-width: 360px;">
+                Click the play button to watch the official trailer directly on YouTube.
+            </p>
+
+            <a href="{{ movie.trailer_url }}" target="_blank" class="btn-neon" id="modalActionBtn" style="display: inline-block; border-color: #ff0000; box-shadow: 0 0 12px rgba(255,0,0,0.3); padding: 0.6rem 2rem; font-size: 0.8rem; background: rgba(255,0,0,0.08); text-decoration: none; border-radius: 30px;">
+                <i class="fa-brands fa-youtube" style="margin-right: 5px;"></i> Open YouTube Player
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Set dynamic widths for category progress fills safely without triggering CSS editor warnings
+        document.querySelectorAll('.category-bar-fill').forEach(fill => {
+            const percent = fill.getAttribute('data-percent');
+            if (percent) {
+                fill.style.setProperty('width', percent + '%', 'important');
+            }
+        });
+
+        // Trailer Modal Controls
+        const openTrailerBtn = document.getElementById('openTrailerBtn');
+        const trailerModal = document.getElementById('trailerModal');
+        const closeTrailerBtn = document.getElementById('closeTrailerBtn');
+        const modalPlayLink = document.getElementById('modalPlayLink');
+        const modalActionBtn = document.getElementById('modalActionBtn');
+
+        if (openTrailerBtn && trailerModal) {
+            openTrailerBtn.addEventListener('click', () => {
+                trailerModal.classList.add('active');
+            });
+        }
+
+        if (closeTrailerBtn && trailerModal) {
+            closeTrailerBtn.addEventListener('click', () => {
+                trailerModal.classList.remove('active');
+            });
+        }
+
+        // Close on clicking outside modal content
+        if (trailerModal) {
+            trailerModal.addEventListener('click', (e) => {
+                if (e.target === trailerModal) {
+                    trailerModal.classList.remove('active');
+                }
+            });
+        }
+
+        // Close modal when trailer links are clicked (so it resets)
+        [modalPlayLink, modalActionBtn].forEach(el => {
+            if (el) {
+                el.addEventListener('click', () => {
+                    setTimeout(() => {
+                        trailerModal.classList.remove('active');
+                    }, 500);
+                });
+            }
+        });
+    });
+
+    function toggleReplyForm(id) {
+        var f = document.getElementById(id);
+        if (f.style.display === "none") {
+            f.style.display = "block";
+        } else {
+            f.style.display = "none";
+        }
+    }
+
+    function showToast(message, type = "success") {
+        const toast = document.createElement("div");
+        toast.className = "toast show";
+        toast.style.position = "fixed";
+        toast.style.bottom = "20px";
+        toast.style.right = "20px";
+        toast.style.background = "rgba(10, 10, 15, 0.95)";
+        toast.style.color = "#fff";
+        toast.style.border = type === "success" ? "1px solid var(--neon-cyan)" : "1px solid var(--neon-pink)";
+        toast.style.boxShadow = type === "success" ? "var(--glow-cyan)" : "var(--glow-pink)";
+        toast.style.padding = "1rem 1.5rem";
+        toast.style.borderRadius = "12px";
+        toast.style.zIndex = "99999";
+        toast.style.fontFamily = "'Outfit', sans-serif";
+        toast.style.fontWeight = "700";
+        toast.style.display = "flex";
+        toast.style.alignItems = "center";
+        toast.style.gap = "10px";
+
+        // Add CSS animations if not defined
+        if (!document.getElementById("toast-animations-style")) {
+            const style = document.createElement("style");
+            style.id = "toast-animations-style";
+            style.innerHTML = `
+            @keyframes toastSlideIn {
+                from { transform: translateX(120%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes toastSlideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(120%); opacity: 0; }
+            }
+        `;
+            document.head.appendChild(style);
+        }
+
+        toast.style.animation = "toastSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards";
+
+        const icon = document.createElement("i");
+        icon.className = type === "success" ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation";
+        icon.style.color = type === "success" ? "var(--neon-cyan)" : "var(--neon-pink)";
+
+        toast.appendChild(icon);
+        toast.appendChild(document.createTextNode(message));
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = "toastSlideOut 0.3s ease forwards";
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function copyReviewLink(reviewId) {
+        const shareUrl = window.location.origin + window.location.pathname + '#review-' + reviewId;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showToast('Review bubble link copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            showToast('Could not copy link.', 'error');
+        });
+    }
+
+    function focusCommentInput(reviewId) {
+        const input = document.getElementById('comment-input-' + reviewId);
+        if (input) {
+            input.focus();
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+</script>
+{% endblock %}

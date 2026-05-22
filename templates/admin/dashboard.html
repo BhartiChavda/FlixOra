@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard | FlixOra{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card-interactive {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card-interactive::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .stat-card-interactive:hover::after {
+        opacity: 1;
+    }
+    
+    .stat-card-interactive.cyan-card {
+        border-left: 4px solid var(--neon-cyan);
+    }
+    .stat-card-interactive.cyan-card:hover {
+        border-color: var(--neon-cyan);
+        box-shadow: var(--glow-cyan);
+        transform: translateY(-4px);
+    }
+    
+    .stat-card-interactive.purple-card {
+        border-left: 4px solid var(--neon-purple);
+    }
+    .stat-card-interactive.purple-card:hover {
+        border-color: var(--neon-purple);
+        box-shadow: var(--glow-purple);
+        transform: translateY(-4px);
+    }
+    
+    .stat-card-interactive.pink-card {
+        border-left: 4px solid var(--neon-pink);
+    }
+    .stat-card-interactive.pink-card:hover {
+        border-color: var(--neon-pink);
+        box-shadow: var(--glow-pink);
+        transform: translateY(-4px);
+    }
+    
+    .stat-card-interactive.yellow-card {
+        border-left: 4px solid #ffc72c;
+    }
+    .stat-card-interactive.yellow-card:hover {
+        border-color: #ffc72c;
+        box-shadow: 0 0 20px rgba(255, 199, 44, 0.35);
+        transform: translateY(-4px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-container" style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 4rem;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 1.5rem;">
+        <div>
+            <h1 style="font-size: 2.2rem; font-weight: 900; color: #fff; margin: 0; text-transform: uppercase; letter-spacing: 1px; font-family: 'Outfit', sans-serif;">
+                <i class="fa-solid fa-shield-halved" style="color: var(--neon-purple); margin-right: 10px; text-shadow: var(--glow-purple);"></i>
+                FlixOra Control Panel
+            </h1>
+            <p style="color: var(--text-dim); margin-top: 5px; font-size: 0.95rem;">Manage titles, users, verification badges, and reviews on the platform.</p>
+        </div>
+        <a href="{% url 'add_movie' %}" class="btn-neon" style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-plus-circle"></i> Add New Title
+        </a>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+        <!-- Stat Card 1: Movies -->
+        <div class="stat-card-interactive cyan-card" onclick="switchAdminTab('moviesTab')" title="View Movies & TV Shows">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Total Titles</span>
+                <h3 style="font-size: 2rem; font-weight: 900; color: #fff; margin: 5px 0 0 0;">{{ total_movies }}</h3>
+            </div>
+            <div style="font-size: 2.2rem; color: var(--neon-cyan); opacity: 0.8;"><i class="fa-solid fa-film"></i></div>
+        </div>
+
+        <!-- Stat Card 2: Users -->
+        <div class="stat-card-interactive purple-card" onclick="switchAdminTab('usersTab')" title="View Critics & Verification">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800;">Total Critics</span>
+                <h3 style="font-size: 2rem; font-weight: 900; color: #fff; margin: 5px 0 0 0;">{{ total_users }}</h3>
+            </div>
+            <div style="font-size: 2.2rem; color: var(--neon-purple); opacity: 0.8;"><i class="fa-solid fa-users"></i></div>
+        </div>
+
+        <!-- Stat Card 3: Reviews -->
+        <div class="stat-card-interactive pink-card" onclick="switchAdminTab('reviewsTab')" title="View Recent Reviews">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800;">Total Reviews</span>
+                <h3 style="font-size: 2rem; font-weight: 900; color: #fff; margin: 5px 0 0 0;">{{ total_reviews }}</h3>
+            </div>
+            <div style="font-size: 2.2rem; color: var(--neon-pink); opacity: 0.8;"><i class="fa-solid fa-comments"></i></div>
+        </div>
+
+        <!-- Stat Card 4: Ratings -->
+        <div class="stat-card-interactive yellow-card" onclick="switchAdminTab('reviewsTab')" title="View Critic Reviews & Ratings">
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800;">Total Ratings</span>
+                <h3 style="font-size: 2rem; font-weight: 900; color: #fff; margin: 5px 0 0 0;">{{ total_ratings }}</h3>
+            </div>
+            <div style="font-size: 2.2rem; color: #ffc72c; opacity: 0.8;"><i class="fa-solid fa-star"></i></div>
+        </div>
+    </div>
+
+    <!-- Management Tab Sections -->
+    <div class="rating-action-card" style="border-radius: 20px; padding: 1.5rem; border-color: rgba(255,255,255,0.05);">
+        <!-- Tab Buttons -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 1rem; overflow-x: auto;">
+            <button onclick="switchAdminTab('moviesTab')" class="btn-admin-tab active" id="btn-moviesTab" style="background: none; border: none; font-size: 1rem; font-weight: 800; color: var(--text-main); cursor: pointer; padding: 0.5rem 1rem; border-bottom: 2px solid var(--neon-cyan); text-transform: uppercase; transition: all 0.2s ease;">
+                <i class="fa-solid fa-clapperboard"></i> Movies & TV Shows ({{ movies.count }})
+            </button>
+            <button onclick="switchAdminTab('usersTab')" class="btn-admin-tab" id="btn-usersTab" style="background: none; border: none; font-size: 1rem; font-weight: 800; color: var(--text-dim); cursor: pointer; padding: 0.5rem 1rem; border-bottom: 2px solid transparent; text-transform: uppercase; transition: all 0.2s ease;">
+                <i class="fa-solid fa-user-astronaut"></i> Critics & Verification ({{ users.count }})
+            </button>
+            <button onclick="switchAdminTab('reviewsTab')" class="btn-admin-tab" id="btn-reviewsTab" style="background: none; border: none; font-size: 1rem; font-weight: 800; color: var(--text-dim); cursor: pointer; padding: 0.5rem 1rem; border-bottom: 2px solid transparent; text-transform: uppercase; transition: all 0.2s ease;">
+                <i class="fa-solid fa-message"></i> Recent Reviews
+            </button>
+        </div>
+
+        <!-- Tab 1: Movies -->
+        <div class="admin-tab-content" id="moviesTab">
+            <!-- Search & Filters -->
+            <form method="GET" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; max-width: 500px;">
+                <input type="hidden" name="active_tab" value="moviesTab">
+                <input type="text" name="movie_search" value="{{ movie_query }}" placeholder="Search by title or genre..." style="flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.75rem 1rem; color: #fff; font-size: 0.9rem;">
+                <button type="submit" class="btn-neon" style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); padding: 0.7rem 1.5rem; font-size: 0.9rem;">
+                    Search
+                </button>
+                {% if movie_query %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn-neon logout-btn" style="padding: 0.7rem 1.2rem; font-size: 0.9rem; text-decoration: none; text-align: center;">Clear</a>
+                {% endif %}
+            </form>
+
+            <!-- Table -->
+            <div style="overflow-x: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; background: rgba(0, 0, 0, 0.2);">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Title</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Type</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Genre</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Release Date</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Rating</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movie in movies %}
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='none'">
+                                <td style="padding: 1rem; font-weight: 700; color: #fff;">
+                                    <a href="{% url 'movie_detail' movie.id %}" style="color: #fff; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--neon-cyan)'" onmouseout="this.style.color='#fff'">
+                                        {{ movie.title }}
+                                    </a>
+                                </td>
+                                <td style="padding: 1rem; text-transform: uppercase; font-size: 0.75rem; font-weight: 800; color: var(--text-dim);">
+                                    <span style="background: rgba(0, 243, 255, 0.1); color: var(--neon-cyan); border: 1px solid rgba(0, 243, 255, 0.15); border-radius: 4px; padding: 2px 6px;">{{ movie.media_type }}</span>
+                                </td>
+                                <td style="padding: 1rem; color: var(--text-dim);">{{ movie.genre }}</td>
+                                <td style="padding: 1rem; color: var(--text-dim);">{{ movie.release_date|date:"M d, Y" }}</td>
+                                <td style="padding: 1rem; font-weight: 800; color: var(--neon-cyan);">
+                                    {% if movie.overall_rating %}
+                                        ⭐ {{ movie.overall_rating }}/10
+                                    {% else %}
+                                        <span style="color: var(--text-dim); font-weight: normal; font-size: 0.8rem;">No ratings</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 1rem; text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem; align-items: center;">
+                                    <a href="{% url 'edit_movie' movie.id %}" class="btn-neon" title="Edit Movie" style="font-size: 0.9rem; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; text-decoration: none; border-color: var(--neon-purple); box-shadow: var(--glow-purple); color: #fff; border-radius: 50%;">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                    <a href="{% url 'delete_movie' movie.id %}" class="btn-neon logout-btn" title="Delete Movie" style="font-size: 0.9rem; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; text-decoration: none; border-radius: 50%;">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" style="padding: 3rem; text-align: center; color: var(--text-dim);">No movies found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: Users -->
+        <div class="admin-tab-content" id="usersTab" style="display: none;">
+            <!-- Search & Filters -->
+            <form method="GET" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; max-width: 500px;">
+                <input type="hidden" name="active_tab" value="usersTab">
+                <input type="text" name="user_search" value="{{ user_query }}" placeholder="Search critics by username..." style="flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.75rem 1rem; color: #fff; font-size: 0.9rem;">
+                <button type="submit" class="btn-neon" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); padding: 0.7rem 1.5rem; font-size: 0.9rem;">
+                    Search
+                </button>
+                {% if user_query %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn-neon logout-btn" style="padding: 0.7rem 1.2rem; font-size: 0.9rem; text-decoration: none; text-align: center;">Clear</a>
+                {% endif %}
+            </form>
+
+            <!-- Table -->
+            <div style="overflow-x: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; background: rgba(0, 0, 0, 0.2);">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Username</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Email</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Date Joined</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Staff / Admin</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Verified Critic Badge</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='none'">
+                                <td style="padding: 1rem; font-weight: 700; color: #fff;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <a href="{% url 'user_profile' u.username %}" style="color: #fff; text-decoration: none;" onmouseover="this.style.color='var(--neon-purple)'" onmouseout="this.style.color='#fff'">
+                                            {{ u.username }}
+                                        </a>
+                                        <span id="verification-badge-{{ u.id }}">
+                                            {% if u.profile.verified %}
+                                                <i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-cyan); font-size: 1.1rem;"></i>
+                                            {% else %}
+                                                <span style="color: var(--text-dim); font-size: 0.85rem;">Unverified</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td style="padding: 1rem; color: var(--text-dim);">{{ u.email|default:"N/A" }}</td>
+                                <td style="padding: 1rem; color: var(--text-dim);">{{ u.date_joined|date:"M d, Y" }}</td>
+                                <td style="padding: 1rem;">
+                                    {% if u.is_superuser %}
+                                        <span style="background: rgba(255,0,127,0.1); color: var(--neon-pink); border: 1px solid rgba(255,0,127,0.2); border-radius: 4px; padding: 2px 6px; font-size: 0.75rem; font-weight: 800;">SUPERUSER</span>
+                                    {% elif u.is_staff %}
+                                        <span style="background: rgba(176,38,255,0.1); color: var(--neon-purple); border: 1px solid rgba(176,38,255,0.2); border-radius: 4px; padding: 2px 6px; font-size: 0.75rem; font-weight: 800;">STAFF</span>
+                                    {% else %}
+                                        <span style="color: var(--text-dim); font-size: 0.85rem;">Critic User</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 1rem; font-weight: 800;">
+                                    {% if u.profile.verified %}
+                                        <button type="button" onclick="toggleVerification('{{ u.id }}', this)" class="btn-neon" style="font-size: 0.75rem; padding: 0.4rem 0.8rem; border-color: var(--neon-pink); color: var(--neon-pink); background: none; cursor: pointer;">
+                                            <i class="fa-solid fa-user-xmark"></i> Unverify
+                                        </button>
+                                    {% else %}
+                                        <button type="button" onclick="toggleVerification('{{ u.id }}', this)" class="btn-neon" style="font-size: 0.75rem; padding: 0.4rem 0.8rem; border-color: var(--neon-cyan); color: var(--neon-cyan); background: none; cursor: pointer;">
+                                            <i class="fa-solid fa-user-check"></i> Verify
+                                        </button>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 1rem; text-align: right;">
+                                    {% if not u.is_superuser %}
+                                        <a href="{% url 'admin_delete_user' u.id %}" onclick="return confirm('Are you absolutely sure you want to delete user {{ u.username }}? This action will wipe all their data.')" class="btn-neon logout-btn" title="Delete User" style="font-size: 0.9rem; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; text-decoration: none; border-radius: 50%;">
+                                            <i class="fa-solid fa-user-minus"></i>
+                                        </a>
+                                    {% else %}
+                                        <span style="color: var(--text-dim); font-size: 0.85rem; font-weight: 800;">Protected</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" style="padding: 3rem; text-align: center; color: var(--text-dim);">No critics found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 3: Reviews -->
+        <div class="admin-tab-content" id="reviewsTab" style="display: none;">
+            <div style="overflow-x: auto; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; background: rgba(0, 0, 0, 0.2);">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                            <th style="padding: 1rem; color: #fff; font-weight: 800; width: 120px;">Critic</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800; width: 150px;">Title</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800; width: 80px;">Rating</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800;">Review Context</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800; width: 120px;">Posted Date</th>
+                            <th style="padding: 1rem; color: #fff; font-weight: 800; text-align: right; width: 100px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in reviews %}
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background='none'">
+                                <td style="padding: 1rem; font-weight: 700; color: #fff;">
+                                    <a href="{% url 'user_profile' review.user.username %}" style="color: #fff; text-decoration: none;" onmouseover="this.style.color='var(--neon-pink)'" onmouseout="this.style.color='#fff'">
+                                        {{ review.user.username }}
+                                    </a>
+                                </td>
+                                <td style="padding: 1rem; font-weight: 700; color: #fff;">
+                                    <a href="{% url 'movie_detail' review.movie.id %}" style="color: #fff; text-decoration: none;">
+                                        {{ review.movie.title }}
+                                    </a>
+                                </td>
+                                <td style="padding: 1rem; font-weight: 800; color: var(--neon-pink);">⭐ {{ review.rating }}/10</td>
+                                <td style="padding: 1rem; color: var(--text-dim); line-height: 1.4;">
+                                    {{ review.text|truncatechars:120 }}
+                                </td>
+                                <td style="padding: 1rem; color: var(--text-dim);">{{ review.created_at|date:"M d, Y" }}</td>
+                                <td style="padding: 1rem; text-align: right;">
+                                    <a href="{% url 'admin_delete_review' review.id %}" onclick="return confirm('Are you sure you want to delete this review?')" class="btn-neon logout-btn" title="Delete Review" style="font-size: 0.9rem; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; text-decoration: none; border-radius: 50%;">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" style="padding: 3rem; text-align: center; color: var(--text-dim);">No reviews submitted yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchAdminTab(tabId) {
+        // Hide all tabs
+        document.querySelectorAll('.admin-tab-content').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        
+        // Remove active state from all buttons
+        document.querySelectorAll('.btn-admin-tab').forEach(btn => {
+            btn.style.color = 'var(--text-dim)';
+            btn.style.borderColor = 'transparent';
+        });
+        
+        // Show target tab
+        document.getElementById(tabId).style.display = 'block';
+        
+        // Set active button style
+        const activeBtn = document.getElementById(`btn-${tabId}`);
+        activeBtn.style.color = 'var(--text-main)';
+        if (tabId === 'moviesTab') {
+            activeBtn.style.borderColor = 'var(--neon-cyan)';
+        } else if (tabId === 'usersTab') {
+            activeBtn.style.borderColor = 'var(--neon-purple)';
+        } else if (tabId === 'reviewsTab') {
+            activeBtn.style.borderColor = 'var(--neon-pink)';
+        }
+        
+        // Store in url hash
+        window.location.hash = tabId;
+    }
+
+    // Toggle Verification AJAX function
+    function toggleVerification(userId, buttonElement) {
+        fetch(`/admin/toggle-verification/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const badgeContainer = document.getElementById(`verification-badge-${userId}`);
+                if (data.verified) {
+                    badgeContainer.innerHTML = '<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-cyan); font-size: 1.1rem;"></i>';
+                    buttonElement.innerHTML = '<i class="fa-solid fa-user-xmark"></i> Unverify';
+                    buttonElement.style.borderColor = 'var(--neon-pink)';
+                    buttonElement.style.color = 'var(--neon-pink)';
+                } else {
+                    badgeContainer.innerHTML = '<span style="color: var(--text-dim); font-size: 0.85rem;">Unverified</span>';
+                    buttonElement.innerHTML = '<i class="fa-solid fa-user-check"></i> Verify';
+                    buttonElement.style.borderColor = 'var(--neon-cyan)';
+                    buttonElement.style.color = 'var(--neon-cyan)';
+                }
+                
+                showDynamicToast(data.message, 'success');
+            } else {
+                showDynamicToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showDynamicToast('Failed to toggle verification status.', 'error');
+        });
+    }
+
+    function showDynamicToast(message, type) {
+        let container = document.querySelector('.messages-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'messages-container';
+            document.body.appendChild(container);
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <span class="toast-text">${message}</span>
+            <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
+
+    // Auto open tab based on location hash or GET param
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTabParam = urlParams.get('active_tab');
+        const hash = window.location.hash.replace('#', '');
+        
+        const targetTab = activeTabParam || hash || 'moviesTab';
+        if (document.getElementById(targetTab)) {
+            switchAdminTab(targetTab);
+        }
+    });
+</script>
+{% endblock %}

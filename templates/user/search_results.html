@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search & Filter Results | FlixOra{% endblock %}
+
+{% block content %}
+<a href="{% url 'dashboard' %}" class="btn-back">
+    <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+<div style="display: grid; grid-template-columns: 1fr 3fr; gap: 3rem;">
+
+    <!-- Left Column: Filters Sidebar -->
+    <div>
+        <div class="rating-action-card" style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); position: sticky; top: 100px;">
+            <h3 style="color: var(--neon-cyan); font-size: 1.2rem; margin-bottom: 1.5rem;"><i class="fa-solid fa-filter"></i> Search Filters</h3>
+            
+            <form action="{% url 'search_filter' %}" method="GET" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                
+                <!-- Query text -->
+                <div>
+                    <label class="form-label">Keyword Query</label>
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search titles, bios, reviews..." class="form-input" style="font-size: 0.9rem;">
+                </div>
+
+                <!-- Genre -->
+                <div>
+                    <label class="form-label">Genre</label>
+                    <select name="genre" class="form-input" style="font-size: 0.9rem;">
+                        <option value="">-- All Genres --</option>
+                        <option value="Action" {% if genre == "Action" %}selected{% endif %}>Action</option>
+                        <option value="Adventure" {% if genre == "Adventure" %}selected{% endif %}>Adventure</option>
+                        <option value="Animation" {% if genre == "Animation" %}selected{% endif %}>Animation</option>
+                        <option value="Comedy" {% if genre == "Comedy" %}selected{% endif %}>Comedy</option>
+                        <option value="Crime" {% if genre == "Crime" %}selected{% endif %}>Crime</option>
+                        <option value="Drama" {% if genre == "Drama" %}selected{% endif %}>Drama</option>
+                        <option value="Family" {% if genre == "Family" %}selected{% endif %}>Family</option>
+                        <option value="Fantasy" {% if genre == "Fantasy" %}selected{% endif %}>Fantasy</option>
+                        <option value="History" {% if genre == "History" %}selected{% endif %}>History</option>
+                        <option value="Horror" {% if genre == "Horror" %}selected{% endif %}>Horror</option>
+                        <option value="Mystery" {% if genre == "Mystery" %}selected{% endif %}>Mystery</option>
+                        <option value="Romance" {% if genre == "Romance" %}selected{% endif %}>Romance</option>
+                        <option value="Science Fiction" {% if genre == "Science Fiction" %}selected{% endif %}>Science Fiction</option>
+                        <option value="Thriller" {% if genre == "Thriller" %}selected{% endif %}>Thriller</option>
+                    </select>
+                </div>
+
+                <!-- Min overall rating -->
+                <div>
+                    <label class="form-label">Minimum Rating</label>
+                    <select name="rating" class="form-input" style="font-size: 0.9rem;">
+                        <option value="">-- Any Rating --</option>
+                        <option value="5" {% if rating == "5" %}selected{% endif %}>5+ Average</option>
+                        <option value="7" {% if rating == "7" %}selected{% endif %}>7+ Classic</option>
+                        <option value="9" {% if rating == "9" %}selected{% endif %}>9+ Masterpiece</option>
+                    </select>
+                </div>
+
+                <!-- Content Type -->
+                <div>
+                    <label class="form-label">Content Type</label>
+                    <select name="media_type" class="form-input" style="font-size: 0.9rem;">
+                        <option value="">-- All Types --</option>
+                        <option value="movie" {% if media_type == "movie" %}selected{% endif %}>🎬 Movie</option>
+                        <option value="tv_show" {% if media_type == "tv_show" %}selected{% endif %}>📺 TV Show</option>
+                        <option value="web_series" {% if media_type == "web_series" %}selected{% endif %}>🌐 Web Series</option>
+                        <option value="ott" {% if media_type == "ott" %}selected{% endif %}>🍿 OTT</option>
+                        <option value="others" {% if media_type == "others" %}selected{% endif %}>🎭 Others</option>
+                    </select>
+                </div>
+
+                <!-- Release year -->
+                <div>
+                    <label class="form-label">Release Year</label>
+                    <input type="number" name="year" value="{{ year }}" placeholder="e.g. 2014" min="1900" max="2030" class="form-input" style="font-size: 0.9rem;">
+                </div>
+
+                <button type="submit" class="btn-neon" style="border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); margin-top: 0.5rem; text-align: center; width: 100%;">
+                    <i class="fa-solid fa-search"></i> Apply Filter
+                </button>
+                <a href="{% url 'search_filter' %}" class="btn-neon" style="border-color: var(--text-dim); box-shadow: none; margin-top: 0.5rem; text-align: center; width: 100%; display: block; background: rgba(255,255,255,0.05); text-decoration: none; box-sizing: border-box; padding: 0.5rem 0; font-size: 0.85rem;">
+                    <i class="fa-solid fa-arrows-rotate"></i> Clear Filters
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column: Results Section -->
+    <div>
+        <h2 style="font-size: 2rem; font-weight: 900; text-transform: uppercase; margin-bottom: 2.5rem; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem;">
+            Search Query Results {% if query %}for "<span style="color: var(--neon-cyan);">{{ query }}</span>"{% endif %}
+        </h2>
+
+        <!-- Matching Movies Section (Only if filtering is active) -->
+        {% if is_filtered %}
+        <div class="movie-section" style="margin-bottom: 4rem;">
+            <h3 class="section-title" style="border-left-color: var(--neon-cyan); margin-bottom: 2rem;">
+                Matching Movies ({{ movies|length }})
+            </h3>
+            
+            <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+                {% for movie in movies %}
+                <div class="movie-card-container">
+                    <div class="movie-card-inner">
+                        <div class="movie-card-front">
+                            <img src="{{ movie.get_poster }}" alt="{{ movie.title }}" class="card-poster" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                            <div class="card-badge-type">
+                                {{ movie.get_media_type_display }}
+                            </div>
+                            <div class="card-badge-rating">
+                                <i class="fa-solid fa-star" style="color: var(--neon-yellow);"></i>
+                                <span>{{ movie.overall_rating|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                        <div class="movie-card-back">
+                            <h3 class="card-back-title" style="font-size: 1rem;">{{ movie.title }}</h3>
+                            <p class="card-back-desc" style="-webkit-line-clamp: 4; line-clamp: 4; font-size: 0.75rem;">{{ movie.description }}</p>
+                            <a href="{% url 'movie_detail' movie.id %}" class="btn-neon form-btn-full" style="display: block; text-align: center; padding: 0.4rem; font-size: 0.75rem; margin-top: auto;">
+                                Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color: var(--text-dim); font-size: 0.95rem; grid-column: 1/-1;">No movies matched the current filters.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Library Section (Always show all movies) -->
+        <div class="movie-section" style="margin-bottom: 4rem;">
+            <h3 class="section-title" style="border-left-color: var(--neon-green); margin-bottom: 2rem;">
+                {% if is_filtered %}All Library Movies{% else %}Explore Entire Library ({{ all_movies|length }}){% endif %}
+            </h3>
+            
+            <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+                {% for movie in all_movies %}
+                <div class="movie-card-container">
+                    <div class="movie-card-inner">
+                        <div class="movie-card-front">
+                            <img src="{{ movie.get_poster }}" alt="{{ movie.title }}" class="card-poster" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop'">
+                            <div class="card-badge-type">
+                                {{ movie.get_media_type_display }}
+                            </div>
+                            <div class="card-badge-rating">
+                                <i class="fa-solid fa-star" style="color: var(--neon-yellow);"></i>
+                                <span>{{ movie.overall_rating|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                        <div class="movie-card-back">
+                            <h3 class="card-back-title" style="font-size: 1rem;">{{ movie.title }}</h3>
+                            <p class="card-back-desc" style="-webkit-line-clamp: 4; line-clamp: 4; font-size: 0.75rem;">{{ movie.description }}</p>
+                            <a href="{% url 'movie_detail' movie.id %}" class="btn-neon form-btn-full" style="display: block; text-align: center; padding: 0.4rem; font-size: 0.75rem; margin-top: auto;">
+                                Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Matching critics list -->
+        <div class="movie-section" style="margin-bottom: 4rem;">
+            <h3 class="section-title" style="border-left-color: var(--neon-purple); margin-bottom: 2rem;">
+                Critics Matches ({{ users.count }})
+            </h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                {% for match_user in users %}
+                <div class="rating-action-card" style="display: flex; gap: 1rem; align-items: center; border-color: rgba(176,38,255,0.25); background: rgba(176,38,255,0.02);">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 1.2rem;">
+                        {{ match_user.username|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">
+                            <a href="{% url 'user_profile' match_user.username %}" style="color: var(--neon-cyan); text-decoration: none;">
+                                {{ match_user.username }}
+                            </a>
+                            {% if match_user.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow);"></i>{% endif %}
+                        </h4>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; line-height: 1.3;">{{ match_user.profile.bio|default:"No critic bio shared."|truncatewords:10 }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color: var(--text-dim); font-size: 0.95rem;">No critics matched the active filters.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Matching review text snippets -->
+        <div class="movie-section">
+            <h3 class="section-title" style="border-left-color: var(--neon-pink); margin-bottom: 2rem;">
+                Review Bubble Matches ({{ reviews.count }})
+            </h3>
+            
+            <div class="reviews-container">
+                {% for rev in reviews %}
+                <div class="comic-bubble-wrapper" style="margin-bottom: 1.5rem;">
+                    <div class="comic-bubble-user">
+                        <a href="{% url 'user_profile' rev.user.username %}" class="comic-username">{{ rev.user.username }}</a>
+                    </div>
+                    <div class="comic-bubble" style="background: #fff; border-color: #000; color: #000;">
+                        <p style="font-size: 0.85rem; font-weight: 800; color: var(--neon-purple); margin-bottom: 0.4rem;">
+                            On: <a href="{% url 'movie_detail' rev.movie.id %}" style="color: var(--neon-purple); text-decoration: none;">{{ rev.movie.title }}</a> (Score: {{ rev.rating }}/10)
+                        </p>
+                        <p>"{{ rev.text }}"</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color: var(--text-dim); font-size: 0.95rem;">No written reviews matched the active filters.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

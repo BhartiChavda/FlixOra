@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Login | FlixOra{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 1rem;">
+    <div class="form-card" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); max-width: 420px; width: 100%;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="font-size: 3rem; color: var(--neon-purple); text-shadow: var(--glow-purple); margin-bottom: 1rem;">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h2 class="form-title" style="margin-bottom: 0.5rem; text-shadow: 0 0 10px rgba(176, 38, 255, 0.4);">
+                Admin Login
+            </h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800;">
+                FlixOra Control Panel
+            </p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    <div style="background: rgba(255,0,127,0.1); border: 1px solid var(--neon-pink); padding: 0.8rem 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #fff; text-align: center;">
+                        <i class="fa-solid fa-circle-exclamation" style="margin-right: 6px; color: var(--neon-pink);"></i> {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="username" style="font-size: 0.8rem; text-transform: uppercase; font-weight: 800;">Username</label>
+                <input type="text" name="username" id="username" required placeholder="Enter administrator username" style="width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.85rem 1rem; color: #fff; font-size: 0.9rem; box-sizing: border-box; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--neon-purple)'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label class="form-label" for="password" style="font-size: 0.8rem; text-transform: uppercase; font-weight: 800;">Password</label>
+                <input type="password" name="password" id="password" required placeholder="Enter password" style="width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.85rem 1rem; color: #fff; font-size: 0.9rem; box-sizing: border-box; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--neon-purple)'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+            </div>
+
+            <button type="submit" class="btn-neon form-btn-full" style="width: 100%; padding: 0.9rem; font-size: 1rem; border-color: var(--neon-purple); box-shadow: var(--glow-purple); cursor: pointer;">
+                <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i> Authenticate & Enter
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

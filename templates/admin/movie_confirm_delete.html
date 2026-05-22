@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ movie.title }} | FlixOra{% endblock %}
+
+{% block content %}
+<a href="{% url 'movie_detail' movie.id %}" class="btn-back">
+    <i class="fa-solid fa-arrow-left"></i> Back
+</a>
+<div class="form-card" style="border-color: var(--neon-pink); box-shadow: var(--glow-pink); max-width: 500px; text-align: center;">
+    <div style="font-size: 3rem; color: var(--neon-pink); text-shadow: var(--glow-pink); margin-bottom: 1.5rem;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    
+    <h2 class="form-title" style="margin-bottom: 1rem; color: #fff;">Delete Movie?</h2>
+    
+    <p style="color: var(--text-dim); font-size: 1rem; line-height: 1.6; margin-bottom: 2rem;">
+        Are you sure you want to permanently delete the movie <strong style="color:#fff;">"{{ movie.title }}"</strong>? This action will remove all associated user ratings and comic review bubbles and cannot be undone.
+    </p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-actions" style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn-neon logout-btn form-btn-full" style="flex: 1;">
+                <i class="fa-solid fa-trash"></i> Confirm Delete
+            </button>
+            <a href="{% url 'movie_detail' movie.id %}" class="btn-neon form-btn-full" style="flex: 1; text-align: center; text-decoration: none; border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); color:#fff;">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

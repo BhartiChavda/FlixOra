@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Activity Feed | FlixOra{% endblock %}
+
+{% block content %}
+<div class="social-hub-container">
+    <!-- Main Content Area -->
+    <div class="social-hub-main">
+        <!-- Back Button -->
+        <a href="{% url 'dashboard' %}" class="btn-back">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+        
+        <!-- Social Hub Tab Selection Header -->
+        <div class="social-hub-tabs">
+            <a href="{% url 'following_feed' %}" class="social-hub-tab-btn">
+                <i class="fa-solid fa-people-group"></i> Critics Feed
+            </a>
+            <a href="{% url 'activity_feed' %}" class="social-hub-tab-btn active">
+                <i class="fa-solid fa-bolt"></i> My Activity
+            </a>
+        </div>
+
+        <div class="activities-container">
+            {% for activity in activities %}
+            <div class="activity-log-card">
+                <!-- Critic avatar preview -->
+                <div class="activity-avatar" style="background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));">
+                    {{ activity.user.username|make_list|first|upper }}
+                </div>
+                
+                <!-- Activity text block -->
+                <div class="activity-body">
+                    <div class="activity-header-row">
+                        <a href="{% url 'user_profile' activity.user.username %}" class="activity-username">
+                            {{ activity.user.username }}
+                        </a>
+                        {% if activity.user.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow);"></i>{% endif %}
+                        
+                        <!-- Color-coded Action Badge -->
+                        {% if "reviewed" in activity.action_text %}
+                            <span class="activity-action-badge badge-review">Review</span>
+                        {% elif "commented" in activity.action_text %}
+                            <span class="activity-action-badge badge-comment">Comment</span>
+                        {% elif "following" in activity.action_text %}
+                            <span class="activity-action-badge badge-follow">Follow</span>
+                        {% elif "watchlist" in activity.action_text %}
+                            <span class="activity-action-badge badge-watchlist">Watchlist</span>
+                        {% else %}
+                            <span class="activity-action-badge badge-default">Update</span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="activity-text">
+                        {{ activity.action_text }}
+                    </p>
+                    <span class="activity-time">
+                        <i class="fa-solid fa-clock"></i> {{ activity.created_at|timesince }} ago
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-social-feed">
+                <i class="fa-solid fa-feed" style="font-size: 3rem; color: var(--neon-purple); opacity: 0.5; margin-bottom: 1rem; display: block;"></i>
+                <h4 style="font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem;">No Activity</h4>
+                <p style="color: var(--text-dim);">You have not recorded any activities yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar Area -->
+    <div class="social-hub-sidebar">
+        <!-- User Profile Card -->
+        <div class="sidebar-card user-profile-summary-card">
+            <div class="sidebar-card-header">Your Social Stats</div>
+            <div class="user-summary-body">
+                <div class="user-summary-avatar" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));">
+                    {{ user.username|make_list|first|upper }}
+                </div>
+                <div class="user-summary-info">
+                    <div class="user-summary-name">
+                        {{ user.username }}
+                        {% if user.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow);"></i>{% endif %}
+                    </div>
+                    {% if user.profile.bio %}
+                        <div class="user-summary-bio">"{{ user.profile.bio|truncatechars:40 }}"</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="user-stats-row">
+                <div class="stat-box">
+                    <span class="stat-num">{{ user_reviews_count }}</span>
+                    <span class="stat-label">Reviews</span>
+                </div>
+                <div class="stat-box" style="cursor: pointer;" onclick="openConnectionsModal('{{ user.username }}', 'following')">
+                    <span class="stat-num" id="currentUserFollowingCount">{{ user_following_count }}</span>
+                    <span class="stat-label">Following</span>
+                </div>
+                <div class="stat-box" style="cursor: pointer;" onclick="openConnectionsModal('{{ user.username }}', 'followers')">
+                    <span class="stat-num">{{ user_followers_count }}</span>
+                    <span class="stat-label">Followers</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who to Follow Card -->
+        <div class="sidebar-card who-to-follow-card">
+            <div class="sidebar-card-header">Critics to Follow</div>
+            <div class="who-to-follow-list">
+                {% for critic in who_to_follow %}
+                <div class="who-to-follow-item">
+                    <div class="critic-item-avatar">
+                        {{ critic.username|make_list|first|upper }}
+                    </div>
+                    <div class="critic-item-info">
+                        <a href="{% url 'user_profile' critic.username %}" class="critic-item-name">
+                            {{ critic.username }}
+                        </a>
+                        {% if critic.profile.verified %}<i class="fa-solid fa-circle-check verified-badge" style="color: var(--neon-yellow); font-size:0.75rem;"></i>{% endif %}
+                    </div>
+                    <button class="btn-follow-toggle compact-follow" data-username="{{ critic.username }}">
+                        Follow
+                    </button>
+                </div>
+                {% empty %}
+                <div class="no-recommendations-text">No new critics to recommend right now. You are following everyone!</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+{% endblock %}
