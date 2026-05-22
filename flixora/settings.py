@@ -108,7 +108,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Get your key at: https://www.themoviedb.org/settings/api
 # ─────────────────────────────────────────────────
 TMDB_API_KEY = os.environ.get('TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
-TMDB_API_URL = 'https://api.tmdb.org/3'
+TMDB_API_URL = 'https://api.themoviedb.org/3'
 TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500'
 
 # SMTP Email Configuration with Console Fallback

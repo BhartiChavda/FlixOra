@@ -155,14 +155,14 @@ class Movie(models.Model):
             img_url = cache.get(cache_key)
             if not img_url:
                 api_key = getattr(settings, 'TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
-                base_url = getattr(settings, 'TMDB_API_URL', 'https://api.tmdb.org/3')
+                base_url = getattr(settings, 'TMDB_API_URL', 'https://api.themoviedb.org/3')
                 search_url = f"{base_url}/search/person"
                 try:
                     response = requests.get(search_url, params={
                         'api_key': api_key,
                         'query': name,
                         'language': 'en-US'
-                    }, timeout=1.5)
+                    }, timeout=5.0)
                     if response.status_code == 200:
                         results = response.json().get('results', [])
                         if results:
@@ -197,14 +197,14 @@ class Movie(models.Model):
             img_url = cache.get(cache_key)
             if not img_url:
                 api_key = getattr(settings, 'TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
-                base_url = getattr(settings, 'TMDB_API_URL', 'https://api.tmdb.org/3')
+                base_url = getattr(settings, 'TMDB_API_URL', 'https://api.themoviedb.org/3')
                 search_url = f"{base_url}/search/person"
                 try:
                     response = requests.get(search_url, params={
                         'api_key': api_key,
                         'query': name,
                         'language': 'en-US'
-                    }, timeout=1.5)
+                    }, timeout=5.0)
                     if response.status_code == 200:
                         results = response.json().get('results', [])
                         if results:
