@@ -11,6 +11,7 @@ urlpatterns = [
     path('like/toggle/', views.toggle_like, name='toggle_like'),
     path('bookmark/toggle/', views.toggle_bookmark, name='toggle_bookmark'),
     path('review/<int:review_id>/comment/add/', views.add_comment, name='add_comment'),
+    path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
     path('review/<int:review_id>/delete/', views.delete_review, name='delete_review'),
     path('user/<str:username>/follow/', views.toggle_follow, name='toggle_follow'),
     path('user/<str:username>/connections/json/', views.user_connections_json, name='user_connections_json'),

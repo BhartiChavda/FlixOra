@@ -286,13 +286,36 @@ def fetch_and_import_tmdb_content(media_type):
             orig_lang = item.get('original_language', 'en')
             lang = 'hindi' if orig_lang == 'hi' else 'english'
             
+            # Fetch real cast and crew
+            cast_info_str = f"Popular globally on TMDB | Rating: {item.get('vote_average', 0.0)}/10"
+            tmdb_id = item.get('id')
+            if tmdb_id and api_key:
+                try:
+                    credits_url = f"{base_url}/{endpoint_type}/{tmdb_id}/credits"
+                    credits_resp = requests.get(credits_url, params={"api_key": api_key}, timeout=2.0)
+                    if credits_resp.status_code == 200:
+                        c_data = credits_resp.json()
+                        directors = [c['name'] for c in c_data.get('crew', []) if c.get('job') == 'Director'][:2]
+                        cast = [c['name'] for c in c_data.get('cast', [])][:5]
+                        
+                        parts = []
+                        if directors:
+                            parts.append(f"Director: {', '.join(directors)}")
+                        if cast:
+                            parts.append(f"Stars: {', '.join(cast)}")
+                        
+                        if parts:
+                            cast_info_str = " | ".join(parts)
+                except Exception:
+                    pass
+            
             Movie.objects.create(
                 title=title,
                 genre=genre_str,
                 release_date=release_date,
                 description=item.get('overview') or "No description available.",
                 poster_url=poster_url,
-                cast_info=f"Popular globally on TMDB | Rating: {item.get('vote_average', 0.0)}/10",
+                cast_info=cast_info_str,
                 media_type=media_type,
                 language=lang
             )
@@ -690,30 +713,39 @@ def movie_detail(request, pk):
     watch_suggestion = "WATCH" if (movie.overall_rating and movie.overall_rating >= 7.0) or not movie.overall_rating else "SKIP"
 
     # Forms
-    rating_form = RatingForm(instance=user_rating)
-    review_form = ReviewForm(instance=user_review)
+    initial_score = user_rating.story_rating if user_rating else None
+    rating_form = RatingForm(initial={'score': initial_score}) if initial_score else RatingForm()
+    review_form = ReviewForm()  # Always show an empty review box so they can post multiple
     watchlist_form = WatchlistForm(instance=watchlist_entry)
     comment_form = CommentForm()
 
     if request.method == 'POST':
-        # Submit category scores
+        # Submit simple overall score
         if 'submit_rating' in request.POST:
-            rating_form = RatingForm(request.POST, instance=user_rating)
+            rating_form = RatingForm(request.POST)
             if rating_form.is_valid():
-                r = rating_form.save(commit=False)
-                r.movie = movie
-                r.user = request.user
-                r.save()
-                messages.success(request, "Category scores saved!")
+                score = rating_form.cleaned_data['score']
+                if not user_rating:
+                    user_rating = Rating(movie=movie, user=request.user)
+                user_rating.story_rating = score
+                user_rating.acting_rating = score
+                user_rating.music_rating = score
+                user_rating.visual_rating = score
+                user_rating.save()
+                messages.success(request, "Your rating has been saved!")
                 return redirect('movie_detail', pk=pk)
         
-        # Submit or edit written review
+        # Submit written review
         elif 'submit_review' in request.POST:
-            review_form = ReviewForm(request.POST, instance=user_review)
+            review_form = ReviewForm(request.POST)  # Do not pass instance, so it creates a new one
             if review_form.is_valid():
                 rev = review_form.save(commit=False)
                 rev.movie = movie
                 rev.user = request.user
+                if user_rating:
+                    rev.rating = user_rating.story_rating
+                else:
+                    rev.rating = 5  # Default if they haven't rated it yet
                 rev.save()
                 messages.success(request, "Your movie review bubble is live!")
                 return redirect('movie_detail', pk=pk)
@@ -874,6 +906,15 @@ def delete_review(request, review_id):
     review.delete()
     messages.info(request, "Review deleted.")
     return redirect('movie_detail', pk=movie_id)
+
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, pk=comment_id, user=request.user)
+    review_id = comment.review.id
+    movie_id = comment.review.movie.id
+    comment.delete()
+    messages.success(request, "Comment deleted.")
+    return redirect(f"/movie/{movie_id}/#review-{review_id}")
 
 @login_required
 def toggle_follow(request, username):

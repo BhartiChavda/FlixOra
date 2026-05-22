@@ -83,11 +83,11 @@ def admin_dashboard(request):
             movies = Movie.objects.all().order_by('-id')
             
         if user_query:
-            users = User.objects.filter(username__icontains=user_query)
+            users = User.objects.select_related('profile').filter(username__icontains=user_query)
         else:
-            users = User.objects.all().order_by('-date_joined')
+            users = User.objects.select_related('profile').all().order_by('-date_joined')
             
-        reviews = Review.objects.all().order_by('-id')[:30] # recent 30 reviews
+        reviews = Review.objects.select_related('user', 'movie').all().order_by('-id')[:30] # recent 30 reviews
         
         context = {
             'total_movies': total_movies,

@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critic Login | FlixOra</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=Bangers&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Neon CSS -->
+    <link rel="stylesheet" href="/static/css/style.css?v=4.8">
+    <script>
+        (function() {
+            const themes = {
+                default: {
+                    '--neon-cyan': '#00f3ff',
+                    '--neon-purple': '#b026ff',
+                    '--neon-pink': '#ff007f',
+                    '--glow-cyan': '0 0 15px rgba(0, 243, 255, 0.4)',
+                    '--glow-purple': '0 0 15px rgba(176, 38, 255, 0.4)',
+                    '--glow-pink': '0 0 15px rgba(255, 0, 127, 0.4)'
+                },
+                emerald: {
+                    '--neon-cyan': '#00ff88',
+                    '--neon-purple': '#00aaff',
+                    '--neon-pink': '#ffaa00',
+                    '--glow-cyan': '0 0 15px rgba(0, 255, 136, 0.4)',
+                    '--glow-purple': '0 0 15px rgba(0, 170, 255, 0.4)',
+                    '--glow-pink': '0 0 15px rgba(255, 170, 0, 0.4)'
+                },
+                sunset: {
+                    '--neon-cyan': '#ff5e3a',
+                    '--neon-purple': '#ff2a6d',
+                    '--neon-pink': '#ffc72c',
+                    '--glow-cyan': '0 0 15px rgba(255, 94, 58, 0.4)',
+                    '--glow-purple': '0 0 15px rgba(255, 42, 109, 0.4)',
+                    '--glow-pink': '0 0 15px rgba(255, 199, 44, 0.4)'
+                },
+                crimson: {
+                    '--neon-cyan': '#ff0055',
+                    '--neon-purple': '#9c0022',
+                    '--neon-pink': '#ff5500',
+                    '--glow-cyan': '0 0 15px rgba(255, 0, 85, 0.4)',
+                    '--glow-purple': '0 0 15px rgba(156, 0, 34, 0.4)',
+                    '--glow-pink': '0 0 15px rgba(255, 85, 0, 0.4)'
+                }
+            };
+            const savedThemeName = localStorage.getItem('FlixOra-theme') || 'default';
+            const theme = themes[savedThemeName] || themes.default;
+            const root = document.documentElement;
+            Object.keys(theme).forEach(key => {
+                root.style.setProperty(key, theme[key]);
+            });
+        })();
+    </script>
+    
+</head>
+<body>
+    <!-- Splash Screen Loader -->
+    <div id="FlixOra-loader" style="position: fixed; inset: 0; background: #06060a; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease-out, visibility 0.5s ease-out; opacity: 1; visibility: visible;">
+        <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+            <!-- Outer spinning glow ring -->
+            <div class="loader-ring" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--neon-purple); border-bottom-color: var(--neon-cyan); animation: spin 1.2s linear infinite; box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);"></div>
+            
+            <!-- Pulsing Center Icon -->
+            <div style="position: absolute; top: 10px; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 1.8rem; animation: pulse 1.5s ease-in-out infinite;">🎬</span>
+            </div>
+            
+            <!-- Branding Text -->
+            <div style="text-align: center;">
+                <h1 style="font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.5rem; letter-spacing: 2px; color: #fff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4); margin: 0;">
+                    FlixOra
+                </h1>
+                <p style="color: var(--text-dim); font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; margin-top: 0.25rem;">
+                    Entering Theater...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(176, 38, 255, 0.3)); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 12px rgba(176, 38, 255, 0.8)); }
+        }
+    </style>
+
+    <script>
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('FlixOra-loader');
+            if (loader) {
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    loader.style.visibility = 'hidden';
+                }, 400);
+            }
+        });
+    </script>
+
+    <!-- Ambient glowing backgrounds -->
+    <div class="glow-bg glow-purple"></div>
+    <div class="glow-bg glow-cyan"></div>
+
+    <!-- Glassmorphic Navbar -->
+    
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                FlixOra <span class="logo-neon">🎬</span>
+            </a>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="nav-links" id="navLinks">
+                
+                    <a href="/login/" class="nav-link active">Login</a>
+                    <a href="/register/" class="btn-neon">Register</a>
+                
+            </div>
+        </div>
+    </nav>
+    
+
+    <!-- Message Alerts (Toasts) -->
+    
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+        
+<div class="form-card" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); position: relative; overflow: hidden; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); background: rgba(15, 15, 25, 0.7); max-width: 440px; margin: 3rem auto; padding: 3rem 2.2rem 2.2rem 2.2rem;">
+    <!-- Abstract background glow elements -->
+    <div style="position: absolute; top: -50px; left: -50px; width: 120px; height: 120px; background: rgba(176, 38, 255, 0.15); filter: blur(35px); border-radius: 50%;"></div>
+    <div style="position: absolute; bottom: -50px; right: -50px; width: 120px; height: 120px; background: rgba(0, 243, 255, 0.15); filter: blur(35px); border-radius: 50%;"></div>
+
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(176, 38, 255, 0.4); margin-bottom: 1rem;">
+            <i class="fa-solid fa-user-astronaut" style="font-size: 1.8rem; color: #fff;"></i>
+        </div>
+        <h2 class="form-title" style="text-shadow: 0 0 15px rgba(176, 38, 255, 0.4); margin-bottom: 0.2rem; font-size: 1.8rem; letter-spacing: 1px;">
+            CRITIC <span style="color: var(--neon-purple);">LOGIN</span>
+        </h2>
+        <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.3rem;">Welcome back! Grab your ticket and enter the lobby.</p>
+    </div>
+    
+    <form method="POST">
+        <input type="hidden" name="csrfmiddlewaretoken" value="yijIM22XmF9c7NyRyNdQbSWFglMCng8JxAej3PVxzT8mP4fXOVP4wHGuUovhv7rB">
+        
+        <div class="form-group" style="position: relative; margin-bottom: 1.5rem;">
+            <label class="form-label" for="id_username" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-circle-user" style="color: var(--neon-purple);"></i> Username
+            </label>
+            <div style="position: relative;">
+                <input type="text" name="username" autofocus required id="id_username" class="form-input" placeholder="Enter your username" style="padding-left: 2.8rem; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem; width: 100%; box-sizing: border-box;">
+                <i class="fa-solid fa-at" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
+            </div>
+        </div>
+        
+        <div class="form-group" style="position: relative; margin-bottom: 1rem;">
+            <label class="form-label" for="id_password" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-lock" style="color: var(--neon-purple);"></i> Password
+            </label>
+            <div style="position: relative;">
+                <input type="password" name="password" required id="id_password" class="form-input" placeholder="Enter your password" style="padding-left: 2.8rem; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem; width: 100%; box-sizing: border-box;">
+                <i class="fa-solid fa-key" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
+            </div>
+        </div>
+
+        <div style="text-align: right; margin-bottom: 1.8rem;">
+            <a href="/forgot-password/" style="color: var(--neon-cyan); text-decoration: none; font-size: 0.8rem; font-weight: 600; transition: color 0.2s ease;">Forgot Password?</a>
+        </div>
+
+        <div class="form-actions" style="margin-top: 1.5rem;">
+            <button type="submit" class="btn-neon form-btn-full" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); padding: 0.9rem; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+        </div>
+    </form>
+    
+    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; font-size: 0.85rem; color: var(--text-dim);">
+        Don't have an account? <a href="/register/" style="color: var(--neon-cyan); text-decoration: none; font-weight: 800; transition: color 0.2s ease;">Sign Up</a>
+    </div>
+</div>
+
+<style>
+    .form-card input.form-input {
+        padding-left: 2.8rem !important;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-sizing: border-box;
+        width: 100%;
+    }
+    .form-card input.form-input:focus {
+        border-color: var(--neon-purple) !important;
+        box-shadow: 0 0 10px rgba(176, 38, 255, 0.2) !important;
+    }
+</style>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 FlixOra. Created for Cinema Lovers. Designed with Neon & Glass.</p>
+    </footer>
+
+    <!-- Global Connections Modal (Followers/Following) -->
+    <div id="globalConnectionsModal" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center; transition: opacity 0.25s ease; opacity: 0;">
+        <div style="background: radial-gradient(circle at top left, rgba(20, 20, 35, 0.98), rgba(10, 10, 15, 0.99)); border: 1px solid rgba(0, 243, 255, 0.25); border-radius: 24px; padding: 1.8rem; width: 90%; max-width: 400px; box-shadow: 0 0 40px rgba(0, 243, 255, 0.15); max-height: 80vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255, 255, 255, 0.1); padding-bottom: 0.8rem; margin-bottom: 1.2rem;">
+                <h3 id="globalConnectionsTitle" style="margin: 0; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; color: #fff; letter-spacing: 1px;">Following</h3>
+                <button onclick="closeGlobalConnectionsModal()" style="background: none; border: none; color: var(--text-dim); font-size: 1.8rem; cursor: pointer; line-height: 1; transition: color 0.2s ease;">&times;</button>
+            </div>
+            
+            <div id="globalConnectionsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 0.2rem;">
+                <!-- Connection items loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="/static/js/main.js?v=4.8"></script>
+    
+</body>
+</html>

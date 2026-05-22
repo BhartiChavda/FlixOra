@@ -108,8 +108,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Get your key at: https://www.themoviedb.org/settings/api
 # ─────────────────────────────────────────────────
 TMDB_API_KEY = os.environ.get('TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
-TMDB_API_URL = 'https://api.themoviedb.org/3'
+
+# Dynamic TMDB URL routing to bypass local ISP blocks (India) vs PythonAnywhere Firewall
+if DEBUG:
+    TMDB_API_URL = 'https://api.tmdb.org/3'
+else:
+    TMDB_API_URL = 'https://api.themoviedb.org/3'
+    
 TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500'
+
+# ─────────────────────────────────────────────────
+# 🔍 Google Custom Search API (Poster Fallback)
+# Step 1: Get API Key → https://console.cloud.google.com/ → Enable "Custom Search API"
+# Step 2: Get Search Engine ID (cx) → https://cse.google.com/cse/ → Create engine for "image search"
+# Leave blank to disable Google fallback (TMDB will still be used)
+# ─────────────────────────────────────────────────
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')   # Add your key here
+GOOGLE_CX = os.environ.get('GOOGLE_CX', '')             # Add your search engine ID here
 
 # SMTP Email Configuration with Console Fallback
 EMAIL_HOST = 'smtp.gmail.com'

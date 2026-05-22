@@ -18,36 +18,21 @@ class MovieForm(forms.ModelForm):
             'cast_info': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Director: X | Stars: Y, Z'}),
         }
 
-class RatingForm(forms.ModelForm):
-    story_rating = forms.IntegerField(
+class RatingForm(forms.Form):
+    score = forms.IntegerField(
         min_value=1, max_value=10,
-        widget=forms.NumberInput(attrs={'class': 'bg-[#15151e] border border-brand-purple/20 rounded-xl px-4 py-2 text-white w-24 text-center focus:outline-none', 'min': '1', 'max': '10'})
+        widget=forms.NumberInput(attrs={
+            'style': 'width: 80px; text-align: center; font-size: 1.2rem; font-weight: 800; background: rgba(0,0,0,0.4); color: #fff; border: 1px solid var(--neon-cyan); border-radius: 12px; padding: 0.5rem; outline: none; box-shadow: inset 0 0 10px rgba(0,243,255,0.1);',
+            'min': '1', 
+            'max': '10', 
+            'placeholder': '-'
+        })
     )
-    acting_rating = forms.IntegerField(
-        min_value=1, max_value=10,
-        widget=forms.NumberInput(attrs={'class': 'bg-[#15151e] border border-brand-purple/20 rounded-xl px-4 py-2 text-white w-24 text-center focus:outline-none', 'min': '1', 'max': '10'})
-    )
-    music_rating = forms.IntegerField(
-        min_value=1, max_value=10,
-        widget=forms.NumberInput(attrs={'class': 'bg-[#15151e] border border-brand-purple/20 rounded-xl px-4 py-2 text-white w-24 text-center focus:outline-none', 'min': '1', 'max': '10'})
-    )
-    visual_rating = forms.IntegerField(
-        min_value=1, max_value=10,
-        widget=forms.NumberInput(attrs={'class': 'bg-[#15151e] border border-brand-purple/20 rounded-xl px-4 py-2 text-white w-24 text-center focus:outline-none', 'min': '1', 'max': '10'})
-    )
-
-    class Meta:
-        model = Rating
-        fields = ['story_rating', 'acting_rating', 'music_rating', 'visual_rating']
 
 class ReviewForm(forms.ModelForm):
-    rating = forms.IntegerField(
-        min_value=1, max_value=10,
-        widget=forms.NumberInput(attrs={'class': 'bg-[#15151e] border border-brand-purple/20 rounded-xl px-4 py-2 text-white w-24 text-center focus:outline-none', 'min': '1', 'max': '10'})
-    )
     class Meta:
         model = Review
-        fields = ['rating', 'text']
+        fields = ['text']
         widgets = {
             'text': forms.Textarea(attrs={
                 'class': 'w-full bg-[#15151e] border border-brand-purple/20 rounded-2xl p-4 text-white focus:outline-none focus:border-brand-purple/65 transition-all resize-none',

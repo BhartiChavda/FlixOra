@@ -55,6 +55,105 @@ class Movie(models.Model):
             return self.poster_url
         if self.poster:
             return self.poster.url
+
+        # Use cache to avoid repeated API calls for the same title
+        cache_key = f"movie_poster_v4_{urllib.parse.quote(self.title)}"
+        cached_poster = cache.get(cache_key)
+        if cached_poster:
+            return cached_poster
+
+        api_key = getattr(settings, 'TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
+        # We try BOTH urls. 
+        # api.themoviedb.org -> works on PythonAnywhere, blocked in India
+        # api.tmdb.org -> works in India, blocked on PythonAnywhere
+        api_urls = [
+            'https://api.themoviedb.org/3',
+            'https://api.tmdb.org/3'
+        ]
+        release_year = self.release_date.year if self.release_date else None
+        title_lower = self.title.strip().lower()
+
+        def _find_best_match(results, name_field):
+            """Exact title match first, then first result with any poster."""
+            for r in results:
+                if r.get(name_field, '').strip().lower() == title_lower and r.get('poster_path'):
+                    return f"https://image.tmdb.org/t/p/w500{r['poster_path']}"
+            for r in results:
+                if r.get('poster_path'):
+                    return f"https://image.tmdb.org/t/p/w500{r['poster_path']}"
+            return None
+
+        def _search_tmdb(endpoint, year_param=None):
+            """Search TMDB: first WITH year (accurate), then WITHOUT year (broader)."""
+            name_field = 'name' if 'tv' in endpoint else 'title'
+            base_params = {'api_key': api_key, 'query': self.title, 'language': 'en-US'}
+            
+            # Try every URL until one works
+            for base_url in api_urls:
+                try:
+                    # Attempt 1: WITH year filter
+                    if year_param and release_year:
+                        resp = requests.get(f"{base_url}/{endpoint}",
+                            params={**base_params, year_param: release_year}, timeout=5.0)
+                        if resp.status_code == 200:
+                            match = _find_best_match(resp.json().get('results', []), name_field)
+                            if match:
+                                return match
+                    # Attempt 2: WITHOUT year filter (catches year mismatches)
+                    resp = requests.get(f"{base_url}/{endpoint}", params=base_params, timeout=5.0)
+                    if resp.status_code == 200:
+                        match = _find_best_match(resp.json().get('results', []), name_field)
+                        if match:
+                            return match
+                except Exception:
+                    continue # If blocked by ISP or Firewall, just try the next URL!
+            return None
+
+        img_url = None
+
+        # Step 1: Search the correct endpoint based on media_type (with year)
+        if self.media_type in ['tv_show', 'web_series', 'ott', 'anime']:
+            img_url = _search_tmdb('search/tv', 'first_air_date_year')
+            # If not found, also try movie endpoint
+            if not img_url:
+                img_url = _search_tmdb('search/movie', 'year')
+        else:
+            img_url = _search_tmdb('search/movie', 'year')
+            # If not found, also try TV endpoint
+            if not img_url:
+                img_url = _search_tmdb('search/tv', 'first_air_date_year')
+
+        # Step 2: If TMDB fails, try Google Custom Search API
+        if not img_url:
+            google_api_key = getattr(settings, 'GOOGLE_API_KEY', None)
+            google_cx = getattr(settings, 'GOOGLE_CX', None)
+            if google_api_key and google_cx:
+                try:
+                    query = f"{self.title} {release_year or ''} poster official".strip()
+                    resp = requests.get(
+                        'https://www.googleapis.com/customsearch/v1',
+                        params={
+                            'key': google_api_key,
+                            'cx': google_cx,
+                            'q': query,
+                            'searchType': 'image',
+                            'num': 1,
+                            'imgSize': 'large',
+                        },
+                        timeout=5.0
+                    )
+                    if resp.status_code == 200:
+                        items = resp.json().get('items', [])
+                        if items:
+                            img_url = items[0].get('link')
+                except Exception:
+                    pass
+
+        if img_url:
+            cache.set(cache_key, img_url, 30 * 86400)  # Cache for 30 days
+            return img_url
+
+        # Final fallback: generic placeholder
         return "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?q=80&w=500&auto=format&fit=crop"
 
     @property
@@ -99,13 +198,91 @@ class Movie(models.Model):
 
     @property
     def overall_rating(self):
-        ratings = self.ratings.all()
-        if not ratings:
-            return None
-        total = 0
-        for r in ratings:
-            total += (r.story_rating + r.acting_rating + r.music_rating + r.visual_rating) / 4.0
-        return round(total / len(ratings), 1)
+        # Always use IMDb rating as the overall score, fallback to TMDB
+        cache_key = f"movie_imdb_rating_v1_{self.id}"
+        cached_rating = cache.get(cache_key)
+        if cached_rating is not None:
+            return cached_rating if cached_rating != "N/A" else None
+            
+        imdb_rating = None
+        
+        # 1. Try to get IMDb rating via open IMDb APIs
+        try:
+            import urllib.parse
+            import re
+            query = urllib.parse.quote(self.title)
+            # Use IMDb suggestion API to find the IMDb ID
+            suggest_url = f"https://v3.sg.media-imdb.com/suggestion/x/{query}.json"
+            suggest_resp = requests.get(suggest_url, timeout=3.0)
+            if suggest_resp.status_code == 200:
+                results = suggest_resp.json().get('d', [])
+                if results:
+                    # Match by title and year if possible
+                    best_match = None
+                    release_year = self.release_date.year if self.release_date else None
+                    for r in results:
+                        if r.get('id', '').startswith('tt') and r.get('l', '').strip().lower() == self.title.strip().lower():
+                            if release_year and r.get('y') == release_year:
+                                best_match = r
+                                break
+                            elif not best_match:
+                                best_match = r
+                    
+                    if not best_match:
+                        for r in results:
+                            if r.get('id', '').startswith('tt'):
+                                best_match = r
+                                break
+                                
+                    if best_match:
+                        imdb_id = best_match['id']
+                        # Fetch the rating from IMDb JSONP endpoint
+                        rating_url = f"https://p.media-imdb.com/static-content/documents/v1/title/{imdb_id}/ratings%3Fjsonp=imdb.rating.run:imdb.api.title.ratings/data.json"
+                        rating_resp = requests.get(rating_url, timeout=3.0)
+                        if rating_resp.status_code == 200:
+                            match = re.search(r'"rating":([0-9.]+)', rating_resp.text)
+                            if match:
+                                imdb_rating = round(float(match.group(1)), 1)
+        except Exception:
+            pass
+            
+        # 2. Fallback to TMDB if IMDb fails
+        if not imdb_rating:
+            api_key = getattr(settings, 'TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
+            api_urls = ['https://api.themoviedb.org/3', 'https://api.tmdb.org/3']
+            endpoint = 'search/tv' if self.media_type in ['tv_show', 'web_series', 'ott', 'anime'] else 'search/movie'
+            year_param = 'first_air_date_year' if 'tv' in endpoint else 'year'
+            release_year = self.release_date.year if self.release_date else None
+            
+            for base_url in api_urls:
+                try:
+                    params = {'api_key': api_key, 'query': self.title, 'language': 'en-US'}
+                    if release_year:
+                        params[year_param] = release_year
+                        
+                    resp = requests.get(f"{base_url}/{endpoint}", params=params, timeout=3.0)
+                    if resp.status_code == 200:
+                        results = resp.json().get('results', [])
+                        if results:
+                            title_lower = self.title.strip().lower()
+                            name_field = 'name' if 'tv' in endpoint else 'title'
+                            best_match = None
+                            for r in results:
+                                if r.get(name_field, '').strip().lower() == title_lower:
+                                    best_match = r
+                                    break
+                            if not best_match:
+                                best_match = results[0]
+                                
+                            vote_avg = best_match.get('vote_average')
+                            if vote_avg:
+                                imdb_rating = round(vote_avg, 1)
+                                break
+                except Exception:
+                    continue
+                    
+        cache.set(cache_key, imdb_rating if imdb_rating else "N/A", 30 * 86400)
+        return imdb_rating
 
     @property
     def heat_meter(self):
@@ -131,6 +308,8 @@ class Movie(models.Model):
     def stars(self):
         if not self.cast_info:
             return None
+        if "Popular globally" in self.cast_info or "Rating:" in self.cast_info:
+            return None
         if "Stars:" in self.cast_info:
             parts = self.cast_info.split('|')
             for part in parts:
@@ -138,6 +317,7 @@ class Movie(models.Model):
                     return part.replace("Stars:", "").strip()
         if "Director:" not in self.cast_info:
             return self.cast_info.strip()
+        return None
 
     @property
     def director_details(self):
@@ -151,27 +331,29 @@ class Movie(models.Model):
             parts = name.split()
             initials = "".join([p[0].upper() for p in parts[:2]]) if parts else "?"
             
-            cache_key = f"person_img_{urllib.parse.quote(name)}"
+            cache_key = f"person_img_v2_{urllib.parse.quote(name)}"
             img_url = cache.get(cache_key)
             if not img_url:
                 api_key = getattr(settings, 'TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
-                base_url = getattr(settings, 'TMDB_API_URL', 'https://api.themoviedb.org/3')
-                search_url = f"{base_url}/search/person"
-                try:
-                    response = requests.get(search_url, params={
-                        'api_key': api_key,
-                        'query': name,
-                        'language': 'en-US'
-                    }, timeout=5.0)
-                    if response.status_code == 200:
-                        results = response.json().get('results', [])
-                        if results:
-                            profile_path = results[0].get('profile_path')
-                            if profile_path:
-                                img_url = f"https://image.tmdb.org/t/p/w185{profile_path}"
-                                cache.set(cache_key, img_url, 30 * 86400)
-                except Exception:
-                    pass
+                api_urls = ['https://api.themoviedb.org/3', 'https://api.tmdb.org/3']
+                for base_url in api_urls:
+                    search_url = f"{base_url}/search/person"
+                    try:
+                        response = requests.get(search_url, params={
+                            'api_key': api_key,
+                            'query': name,
+                            'language': 'en-US'
+                        }, timeout=5.0)
+                        if response.status_code == 200:
+                            results = response.json().get('results', [])
+                            if results:
+                                profile_path = results[0].get('profile_path')
+                                if profile_path:
+                                    img_url = f"https://image.tmdb.org/t/p/w185{profile_path}"
+                                    cache.set(cache_key, img_url, 30 * 86400)
+                            break  # Stop trying other URLs if this one succeeds
+                    except Exception:
+                        continue
             
             details.append({
                 'name': name,
@@ -193,27 +375,29 @@ class Movie(models.Model):
             parts = name.split()
             initials = "".join([p[0].upper() for p in parts[:2]]) if parts else "?"
             
-            cache_key = f"person_img_{urllib.parse.quote(name)}"
+            cache_key = f"person_img_v2_{urllib.parse.quote(name)}"
             img_url = cache.get(cache_key)
             if not img_url:
                 api_key = getattr(settings, 'TMDB_API_KEY', '9eeb9108c0facc34d988b94798220a6e')
-                base_url = getattr(settings, 'TMDB_API_URL', 'https://api.themoviedb.org/3')
-                search_url = f"{base_url}/search/person"
-                try:
-                    response = requests.get(search_url, params={
-                        'api_key': api_key,
-                        'query': name,
-                        'language': 'en-US'
-                    }, timeout=5.0)
-                    if response.status_code == 200:
-                        results = response.json().get('results', [])
-                        if results:
-                            profile_path = results[0].get('profile_path')
-                            if profile_path:
-                                img_url = f"https://image.tmdb.org/t/p/w185{profile_path}"
-                                cache.set(cache_key, img_url, 30 * 86400)
-                except Exception:
-                    pass
+                api_urls = ['https://api.themoviedb.org/3', 'https://api.tmdb.org/3']
+                for base_url in api_urls:
+                    search_url = f"{base_url}/search/person"
+                    try:
+                        response = requests.get(search_url, params={
+                            'api_key': api_key,
+                            'query': name,
+                            'language': 'en-US'
+                        }, timeout=5.0)
+                        if response.status_code == 200:
+                            results = response.json().get('results', [])
+                            if results:
+                                profile_path = results[0].get('profile_path')
+                                if profile_path:
+                                    img_url = f"https://image.tmdb.org/t/p/w185{profile_path}"
+                                    cache.set(cache_key, img_url, 30 * 86400)
+                            break  # Stop trying other URLs if this one succeeds
+                    except Exception:
+                        continue
             
             details.append({
                 'name': name,
