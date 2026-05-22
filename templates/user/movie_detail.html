@@ -52,6 +52,48 @@
         background: #ff3333 !important;
         box-shadow: 0 0 35px rgba(255, 0, 0, 0.9) !important;
     }
+
+    .rating-board-container {
+        display: flex;
+        align-items: center;
+        gap: 2.5rem;
+    }
+    .rating-board-divider {
+        border-left: 1px solid rgba(255,255,255,0.08);
+        padding-left: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 100px;
+    }
+    .community-stats-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .rating-board-container {
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .rating-board-divider {
+            border-left: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-left: 0;
+            padding-top: 1.5rem;
+            width: 100%;
+            min-height: auto;
+            align-items: center;
+        }
+        .community-stats-container {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+    }
 </style>
 <a href="{% url 'dashboard' %}" class="btn-back">
     <i class="fa-solid fa-arrow-left"></i> Back
@@ -214,8 +256,7 @@
         </div>
 
         <!-- Rating Board -->
-        <div class="rating-action-card"
-            style="display: flex; align-items: center; gap: 2.5rem;">
+        <div class="rating-action-card rating-board-container">
 
             <!-- Circular Progress Meter -->
             <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
@@ -234,7 +275,7 @@
             </div>
 
             <!-- Submit Simple Score Form -->
-            <div style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 2.5rem; display: flex; flex-direction: column; justify-content: center; min-height: 100px;">
+            <div class="rating-board-divider">
                 <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.8rem;">
                     <h4 style="font-size: 0.9rem; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">
                         Your Rating
@@ -258,12 +299,12 @@
             </div>
 
             <!-- Community Stats / Watch Suggestion -->
-            <div style="flex: 1; border-left: 1px solid rgba(255,255,255,0.08); padding-left: 2.5rem; display: flex; flex-direction: column; justify-content: center; min-height: 100px;">
+            <div class="rating-board-divider" style="flex: 1;">
                 <h4 style="font-size: 0.85rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem;">
                     Community Stats
                 </h4>
                 
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                <div class="community-stats-container">
                     <!-- Heat Meter -->
                     <div style="display: flex; flex-direction: column; gap: 0.4rem;">
                         <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 800; letter-spacing: 1px;">Popularity</span>
