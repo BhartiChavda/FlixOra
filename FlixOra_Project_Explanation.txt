@@ -1,0 +1,70 @@
+Project Name: FlixOra
+
+Overview:
+FlixOra is a movie and web series tracking platform inspired by IMDb and Letterboxd. It allows users to discover movies and TV shows, maintain watchlists, write reviews, rate content, and interact with other movie enthusiasts through social networking features.
+
+Key Features
+
+✅ Movie & TV Search
+- Integrated with TMDB and IMDb APIs.
+- Fetches movie posters, trailers, cast details, release dates, and ratings automatically.
+
+✅ Advanced Rating System
+- Users can rate different aspects of a movie:
+  * Story
+  * Acting
+  * Music
+  * Visual Effects
+- Generates an overall rating and trending score (Heat Meter).
+
+✅ Watchlist Management
+- Users can organize content into:
+  * Watching
+  * Completed
+  * Plan to Watch
+
+✅ Social Features
+- Follow other users.
+- Like and comment on reviews.
+- Nested comment replies.
+- Activity feed.
+- Bookmark favorite reviews.
+
+✅ User Authentication
+- Secure Email OTP verification.
+- Forgot Password with OTP.
+- Custom profile with bio and profile picture.
+
+
+Technical Explanation
+
+I developed FlixOra as a full-stack web application using:
+- Backend: Python, Django
+- Frontend: HTML, CSS, JavaScript, Bootstrap
+- Database: SQLite/MySQL
+- APIs: TMDB API, IMDb API, Google Custom Search API
+
+Technical Implementations
+- Integrated third-party APIs for real-time movie data.
+- Used Django ORM for database management.
+- Implemented caching to reduce API requests and improve performance.
+- Designed relational database models using OneToOne, ForeignKey, and ManyToMany relationships.
+- Created custom model properties for average ratings and dynamic calculations.
+- Developed secure OTP-based authentication and password recovery systems.
+
+Challenges Solved
+- Handling API rate limits.
+- Optimizing performance through caching.
+- Managing nested comments and social interactions.
+- Synchronizing data from multiple external APIs.
+
+Future Enhancements
+- Recommendation system using AI/Machine Learning.
+- Personalized movie suggestions.
+- Mobile application support.
+- Real-time notifications and chat system.
+
+Interview (1 Minute Answer)
+
+"FlixOra is a Django-based social platform for movie and web series enthusiasts. Users can search movies using TMDB and IMDb APIs, create watchlists, write reviews, rate movies on multiple parameters, and interact with other users through follows, likes, comments, and activity feeds. The project uses Django ORM, caching, OTP-based authentication, and external API integrations to provide a fast and secure user experience."
+
