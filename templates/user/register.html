@@ -3,89 +3,126 @@
 {% block title %}Register Ticket | FlixOra{% endblock %}
 
 {% block content %}
-<div class="form-card" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); position: relative; overflow: hidden; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); background: rgba(15, 15, 25, 0.7); max-width: 460px; margin: 3rem auto; padding: 3rem 2.2rem 2.2rem 2.2rem;">
+<div class="form-card"
+    style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); position: relative; overflow: hidden; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); background: rgba(15, 15, 25, 0.7); max-width: 460px; margin: 3rem auto; padding: 3rem 2.2rem 2.2rem 2.2rem;">
     <!-- Abstract background glow elements -->
-    <div style="position: absolute; top: -50px; left: -50px; width: 120px; height: 120px; background: rgba(176, 38, 255, 0.15); filter: blur(35px); border-radius: 50%;"></div>
-    <div style="position: absolute; bottom: -50px; right: -50px; width: 120px; height: 120px; background: rgba(0, 243, 255, 0.15); filter: blur(35px); border-radius: 50%;"></div>
+    <div
+        style="position: absolute; top: -50px; left: -50px; width: 120px; height: 120px; background: rgba(176, 38, 255, 0.15); filter: blur(35px); border-radius: 50%;">
+    </div>
+    <div
+        style="position: absolute; bottom: -50px; right: -50px; width: 120px; height: 120px; background: rgba(0, 243, 255, 0.15); filter: blur(35px); border-radius: 50%;">
+    </div>
 
     <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(176, 38, 255, 0.4); margin-bottom: 1rem;">
+        <div
+            style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(176, 38, 255, 0.4); margin-bottom: 1rem;">
             <i class="fa-solid fa-ticket-simple" style="font-size: 1.8rem; color: #fff;"></i>
         </div>
-        <h2 class="form-title" style="text-shadow: 0 0 15px rgba(176, 38, 255, 0.4); margin-bottom: 0.2rem; font-size: 1.8rem; letter-spacing: 1px;">
+        <h2 class="form-title"
+            style="text-shadow: 0 0 15px rgba(176, 38, 255, 0.4); margin-bottom: 0.2rem; font-size: 1.8rem; letter-spacing: 1px;">
             GET <span style="color: var(--neon-purple);">REGISTERED</span>
         </h2>
-        <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.3rem;">Get your free pass and join the community of movie critics.</p>
+        <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.3rem;">Get your free pass and join the
+            community of movie critics.</p>
     </div>
-    
+
     <form method="POST">
         {% csrf_token %}
-        
+
         {% if form.errors %}
-            <div style="background: rgba(255,0,127,0.08); border: 1px solid rgba(255,0,127,0.3); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #fff;">
-                <strong style="color: var(--neon-pink);">Please correct the errors:</strong>
-                <ul style="margin-top: 0.5rem; padding-left: 1.2rem; list-style-type: square; color: rgba(255,255,255,0.9);">
-                    {% for field, errors in form.errors.items %}
-                        {% for error in errors %}
-                            <li>{{ field|title }}: {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
-            </div>
+        <div
+            style="background: rgba(255,0,127,0.08); border: 1px solid rgba(255,0,127,0.3); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; font-size: 0.85rem; color: #fff;">
+            <strong style="color: var(--neon-pink);">Please correct the errors:</strong>
+            <ul
+                style="margin-top: 0.5rem; padding-left: 1.2rem; list-style-type: square; color: rgba(255,255,255,0.9);">
+                {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                <li>{{ field|title }}: {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
         {% endif %}
 
         {% for field in form %}
-            <div class="form-group" style="position: relative; margin-bottom: 1.5rem;">
-                <label class="form-label" for="{{ field.id_for_label }}" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                    {% if field.name == 'username' %}
-                        <i class="fa-solid fa-circle-user" style="color: var(--neon-purple);"></i> Username
-                    {% elif field.name == 'email' %}
-                        <i class="fa-solid fa-envelope" style="color: var(--neon-purple);"></i> Email Address
-                    {% elif field.name == 'password' %}
-                        <i class="fa-solid fa-lock" style="color: var(--neon-purple);"></i> Password
-                    {% elif field.name == 'password_confirm' %}
-                        <i class="fa-solid fa-lock-open" style="color: var(--neon-purple);"></i> Confirm Password
-                    {% else %}
-                        <i class="fa-solid fa-pen" style="color: var(--neon-purple);"></i> {{ field.label }}
-                    {% endif %}
-                </label>
-                <div style="position: relative;">
-                    {{ field }}
-                    {% if field.name == 'username' %}
-                        <i class="fa-solid fa-at" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
-                    {% elif field.name == 'email' %}
-                        <i class="fa-solid fa-paper-plane" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
-                    {% elif field.name == 'password' or field.name == 'password_confirm' %}
-                        <i class="fa-solid fa-key" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
-                    {% endif %}
-                </div>
-                {% if field.help_text %}
-                    <span style="display:block; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">{{ field.help_text }}</span>
+        <div class="form-group" style="position: relative; margin-bottom: 1.5rem;">
+            <label class="form-label" for="{{ field.id_for_label }}"
+                style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                {% if field.name == 'username' %}
+                <i class="fa-solid fa-circle-user" style="color: var(--neon-purple);"></i> Username
+                {% elif field.name == 'email' %}
+                <i class="fa-solid fa-envelope" style="color: var(--neon-purple);"></i> Email Address
+                {% elif field.name == 'password' %}
+                <i class="fa-solid fa-lock" style="color: var(--neon-purple);"></i> Password
+                {% elif field.name == 'password_confirm' %}
+                <i class="fa-solid fa-lock-open" style="color: var(--neon-purple);"></i> Confirm Password
+                {% else %}
+                <i class="fa-solid fa-pen" style="color: var(--neon-purple);"></i> {{ field.label }}
+                {% endif %}
+            </label>
+            <div style="position: relative;">
+                {{ field }}
+                {% if field.name == 'username' %}
+                <i class="fa-solid fa-at"
+                    style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
+                {% elif field.name == 'email' %}
+                <i class="fa-solid fa-paper-plane"
+                    style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
+                {% elif field.name == 'password' or field.name == 'password_confirm' %}
+                <i class="fa-solid fa-key"
+                    style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
+                <i class="fa-solid fa-eye toggle-password"
+                    style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem; cursor: pointer;"></i>
                 {% endif %}
             </div>
+            {% if field.help_text %}
+            <span style="display:block; font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">{{
+                field.help_text }}</span>
+            {% endif %}
+        </div>
         {% endfor %}
 
         <div class="form-actions" style="margin-top: 2rem;">
-            <button type="submit" class="btn-neon form-btn-full" style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); padding: 0.9rem; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">
+            <button type="submit" class="btn-neon form-btn-full"
+                style="border-color: var(--neon-purple); box-shadow: var(--glow-purple); padding: 0.9rem; font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease;">
                 <i class="fa-solid fa-user-plus"></i> Sign Up
             </button>
         </div>
     </form>
-    
-    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; font-size: 0.85rem; color: var(--text-dim);">
-        Already have an account? <a href="{% url 'login' %}" style="color: var(--neon-cyan); text-decoration: none; font-weight: 800; transition: color 0.2s ease;">Sign In</a>
+
+    <div
+        style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; font-size: 0.85rem; color: var(--text-dim);">
+        Already have an account? <a href="{% url 'login' %}"
+            style="color: var(--neon-cyan); text-decoration: none; font-weight: 800; transition: color 0.2s ease;">Sign
+            In</a>
     </div>
 </div>
 
+<script>
+    const togglePasswords = document.querySelectorAll('.toggle-password');
+    togglePasswords.forEach(icon => {
+        icon.addEventListener('click', function (e) {
+            const inputField = this.parentElement.querySelector('input');
+            const type = inputField.getAttribute('type') === 'password' ? 'text' : 'password';
+            inputField.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+    });
+</script>
+
 <style>
-    .form-card input.form-input {
+    .form-card input.form-input,
+    .form-card input[type="password"],
+    .form-card input[type="text"] {
         padding-left: 2.8rem !important;
+        padding-right: 2.8rem !important;
         border-radius: 12px;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         box-sizing: border-box;
         width: 100%;
     }
+
     .form-card input.form-input:focus {
         border-color: var(--neon-purple) !important;
         box-shadow: 0 0 10px rgba(176, 38, 255, 0.2) !important;

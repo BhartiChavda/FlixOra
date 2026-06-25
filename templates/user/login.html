@@ -36,8 +36,9 @@
                 <i class="fa-solid fa-lock" style="color: var(--neon-purple);"></i> Password
             </label>
             <div style="position: relative;">
-                <input type="password" name="password" required id="id_password" class="form-input" placeholder="Enter your password" style="padding-left: 2.8rem; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem; width: 100%; box-sizing: border-box;">
+                <input type="password" name="password" required id="id_password" class="form-input" placeholder="Enter your password" style="padding-left: 2.8rem; padding-right: 2.8rem; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); font-size: 0.95rem; width: 100%; box-sizing: border-box;">
                 <i class="fa-solid fa-key" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem;"></i>
+                <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 0.9rem; cursor: pointer;"></i>
             </div>
         </div>
 
@@ -57,9 +58,21 @@
     </div>
 </div>
 
+<script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#id_password');
+
+    togglePassword.addEventListener('click', function (e) {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        this.classList.toggle('fa-eye-slash');
+    });
+</script>
+
 <style>
     .form-card input.form-input {
         padding-left: 2.8rem !important;
+        padding-right: 2.8rem !important;
         border-radius: 12px;
         background: rgba(255,255,255,0.02);
         border: 1px solid rgba(255,255,255,0.08);
